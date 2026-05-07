@@ -1,0 +1,395 @@
+import { useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import C from "../constants/colors";
+import { Row, Card, ProgressBar, Badge } from "../components";
+
+const CHECKLIST = [
+  { label: "Portada e identificación", done: true },
+  { label: "Índice de contenidos", done: true },
+  { label: "Resumen ejecutivo", done: true },
+  { label: "Introducción y justificación", done: true },
+  { label: "Marco teórico", done: true },
+  { label: "Descripción del problema", done: false },
+  { label: "Objetivos específicos", done: false },
+  { label: "Metodología aplicada", done: false },
+  { label: "Resultados obtenidos", done: false },
+  { label: "Análisis y discusión", done: false },
+  { label: "Conclusiones", done: false },
+  { label: "Bibliografía y anexos", done: false },
+];
+
+const TIMELINE = [
+  { label: "Inicio de residencia", date: "01 Ago 2024", done: true },
+  { label: "Reporte Parcial 1", date: "15 Oct 2024", done: true },
+  { label: "Reporte Parcial 2", date: "12 Nov 2024", done: true },
+  { label: "Reporte Parcial 3", date: "05 Dic 2024", done: false, current: true },
+  { label: "Reporte Final", date: "20 Ene 2025", done: false },
+  { label: "Presentación oral", date: "31 Ene 2025", done: false },
+];
+
+const RUBRIC = [
+  { label: "Contenido técnico", max: 40, earned: 17 },
+  { label: "Redacción y estilo", max: 20, earned: 8 },
+  { label: "Evidencias y anexos", max: 20, earned: 0 },
+  { label: "Formato y presentación", max: 10, earned: 4 },
+  { label: "Originalidad", max: 10, earned: 0 },
+];
+
+export default function ReporteFinal() {
+  const [uploadHover, setUploadHover] = useState(false);
+
+  const doneCount = CHECKLIST.filter((i) => i.done).length;
+  const pct = Math.round((doneCount / CHECKLIST.length) * 100);
+
+  const totalEarned = RUBRIC.reduce((s, r) => s + r.earned, 0);
+  const totalMax = RUBRIC.reduce((s, r) => s + r.max, 0);
+
+  return (
+    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 24 }}>
+      {/* Dark Navy Banner Header */}
+      <View
+        style={{
+          backgroundColor: C.navy,
+          borderRadius: 16,
+          padding: 24,
+          marginBottom: 20,
+          overflow: "hidden",
+        }}
+      >
+        {/* Decorative circle */}
+        <View
+          style={{
+            position: "absolute",
+            width: 200,
+            height: 200,
+            borderRadius: 100,
+            backgroundColor: C.teal,
+            opacity: 0.05,
+            top: -60,
+            right: -40,
+          }}
+        />
+        <Row style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
+          <View style={{ flex: 1, marginRight: 20 }}>
+            <Row style={{ alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <View
+                style={{
+                  backgroundColor: C.teal,
+                  borderRadius: 6,
+                  paddingHorizontal: 9,
+                  paddingVertical: 3,
+                }}
+              >
+                <Text style={{ fontSize: 10, fontWeight: "700", color: "white", letterSpacing: 0.5 }}>
+                  REPORTE FINAL
+                </Text>
+              </View>
+              <Badge text="En Progreso" color={C.amber} bg="rgba(245,158,11,0.2)" />
+            </Row>
+            <Text style={{ fontSize: 20, fontWeight: "800", color: "white", lineHeight: 26, marginBottom: 4 }}>
+              Sistema de Gestión de Inventarios
+            </Text>
+            <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 14 }}>
+              AutoParts Globales S.A. de C.V.
+            </Text>
+
+            {/* Student info */}
+            <Row style={{ alignItems: "center", gap: 14, marginBottom: 16 }}>
+              <Row style={{ alignItems: "center", gap: 7 }}>
+                <View
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
+                    backgroundColor: C.teal,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: 10, color: "white", fontWeight: "800" }}>C.R</Text>
+                </View>
+                <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", fontWeight: "600" }}>
+                  Carlos Ramírez
+                </Text>
+              </Row>
+              <Row style={{ alignItems: "center", gap: 5 }}>
+                <Feather name="user" size={11} color="rgba(255,255,255,0.5)" />
+                <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Dr. Martínez</Text>
+              </Row>
+            </Row>
+
+            {/* Deadline */}
+            <Row style={{ alignItems: "center", gap: 6 }}>
+              <Feather name="calendar" size={12} color="rgba(255,255,255,0.5)" />
+              <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+                Fecha límite:{" "}
+                <Text style={{ color: C.amber, fontWeight: "700" }}>20 Enero 2025</Text>
+              </Text>
+            </Row>
+          </View>
+
+          {/* Progress Circle (simulated) */}
+          <View style={{ alignItems: "center" }}>
+            <View
+              style={{
+                width: 90,
+                height: 90,
+                borderRadius: 45,
+                borderWidth: 8,
+                borderColor: C.navyLight,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: C.navyMid,
+              }}
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  width: 90,
+                  height: 90,
+                  borderRadius: 45,
+                  borderWidth: 8,
+                  borderColor: C.teal,
+                  borderRightColor: "transparent",
+                  borderBottomColor: "transparent",
+                  transform: [{ rotate: "-45deg" }],
+                }}
+              />
+              <Text style={{ fontSize: 20, fontWeight: "800", color: "white" }}>{pct}%</Text>
+            </View>
+            <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 8, textAlign: "center" }}>
+              {doneCount}/{CHECKLIST.length} secciones
+            </Text>
+          </View>
+        </Row>
+
+        {/* Progress bar */}
+        <View style={{ marginTop: 16 }}>
+          <Row style={{ justifyContent: "space-between", marginBottom: 6 }}>
+            <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Progreso del reporte</Text>
+            <Text style={{ fontSize: 11, color: C.teal, fontWeight: "700" }}>{pct}% completado</Text>
+          </Row>
+          <View style={{ height: 6, backgroundColor: C.navyLight, borderRadius: 3, overflow: "hidden" }}>
+            <View
+              style={{
+                height: "100%",
+                width: `${pct}%`,
+                backgroundColor: C.teal,
+                borderRadius: 3,
+              }}
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Main content: 2 columns */}
+      <Row style={{ gap: 18, alignItems: "flex-start" }}>
+        {/* Left: Checklist + Upload */}
+        <View style={{ flex: 1 }}>
+          {/* Checklist */}
+          <Card style={{ marginBottom: 16 }}>
+            <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <Text style={{ fontSize: 14, fontWeight: "800", color: C.text }}>Lista de Contenidos</Text>
+              <Badge
+                text={`${doneCount}/${CHECKLIST.length} completados`}
+                color={C.teal}
+                bg={C.tealLight}
+              />
+            </Row>
+            {/* 2-column grid */}
+            <Row style={{ flexWrap: "wrap", gap: 10 }}>
+              {CHECKLIST.map((item, i) => (
+                <View
+                  key={i}
+                  style={{
+                    width: "47%",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    backgroundColor: item.done ? C.tealLighter : C.bg,
+                    borderRadius: 9,
+                    borderWidth: 1,
+                    borderColor: item.done ? C.tealLight : C.border,
+                    padding: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 6,
+                      backgroundColor: item.done ? C.teal : C.card,
+                      borderWidth: item.done ? 0 : 1.5,
+                      borderColor: C.border,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.done && <Feather name="check" size={12} color="white" />}
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: item.done ? C.teal : C.textMuted,
+                      fontWeight: item.done ? "700" : "500",
+                      flex: 1,
+                    }}
+                    numberOfLines={2}
+                  >
+                    {item.label}
+                  </Text>
+                </View>
+              ))}
+            </Row>
+          </Card>
+
+          {/* File Upload */}
+          <Card>
+            <Text style={{ fontSize: 14, fontWeight: "800", color: C.text, marginBottom: 14 }}>
+              Subir Documento
+            </Text>
+            <TouchableOpacity
+              onPressIn={() => setUploadHover(true)}
+              onPressOut={() => setUploadHover(false)}
+              activeOpacity={0.8}
+              style={{
+                borderWidth: 2,
+                borderStyle: "dashed",
+                borderColor: uploadHover ? C.teal : C.border,
+                borderRadius: 12,
+                padding: 28,
+                alignItems: "center",
+                backgroundColor: uploadHover ? C.tealLighter : C.bg,
+                marginBottom: 14,
+              }}
+            >
+              <View
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 13,
+                  backgroundColor: C.tealLight,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 12,
+                }}
+              >
+                <Feather name="upload-cloud" size={22} color={C.teal} />
+              </View>
+              <Text style={{ fontSize: 14, fontWeight: "700", color: C.text, marginBottom: 4 }}>
+                Arrastra tu archivo aquí
+              </Text>
+              <Text style={{ fontSize: 12, color: C.textMuted, marginBottom: 10 }}>
+                o haz clic para seleccionar
+              </Text>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: C.teal,
+                  borderRadius: 8,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                }}
+              >
+                <Text style={{ fontSize: 12, color: "white", fontWeight: "700" }}>Seleccionar archivo</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+            <Text style={{ fontSize: 11, color: C.textLight, textAlign: "center" }}>
+              Formatos aceptados: PDF, DOCX · Tamaño máximo: 25 MB
+            </Text>
+          </Card>
+        </View>
+
+        {/* Right Sidebar */}
+        <View style={{ width: 280 }}>
+          {/* Timeline */}
+          <Card style={{ marginBottom: 14 }}>
+            <Text style={{ fontSize: 13, fontWeight: "800", color: C.text, marginBottom: 16 }}>
+              Línea de Tiempo
+            </Text>
+            <View style={{ gap: 0 }}>
+              {TIMELINE.map((ev, i) => (
+                <Row key={i} style={{ gap: 12, alignItems: "flex-start" }}>
+                  {/* Connector */}
+                  <View style={{ alignItems: "center" }}>
+                    <View
+                      style={{
+                        width: 14,
+                        height: 14,
+                        borderRadius: 7,
+                        backgroundColor: ev.done
+                          ? C.teal
+                          : ev.current
+                          ? C.amber
+                          : C.bg,
+                        borderWidth: ev.done ? 0 : 2,
+                        borderColor: ev.current ? C.amber : C.border,
+                        marginTop: 2,
+                      }}
+                    >
+                      {ev.done && (
+                        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                          <Feather name="check" size={8} color="white" />
+                        </View>
+                      )}
+                    </View>
+                    {i < TIMELINE.length - 1 && (
+                      <View
+                        style={{
+                          width: 2,
+                          flex: 1,
+                          minHeight: 24,
+                          backgroundColor: ev.done ? C.tealLight : C.border,
+                          marginVertical: 2,
+                        }}
+                      />
+                    )}
+                  </View>
+                  <View style={{ flex: 1, paddingBottom: i < TIMELINE.length - 1 ? 8 : 0 }}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: ev.current ? "800" : "600",
+                        color: ev.done ? C.teal : ev.current ? C.amber : C.textMuted,
+                      }}
+                    >
+                      {ev.label}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: C.textLight }}>{ev.date}</Text>
+                    {ev.current && (
+                      <Badge text="En progreso" color={C.amber} bg={C.amberLight} />
+                    )}
+                  </View>
+                </Row>
+              ))}
+            </View>
+          </Card>
+
+          {/* Rubric */}
+          <Card>
+            <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <Text style={{ fontSize: 13, fontWeight: "800", color: C.text }}>Rúbrica</Text>
+              <Text style={{ fontSize: 13, fontWeight: "800", color: C.teal }}>
+                {totalEarned}/{totalMax}
+              </Text>
+            </Row>
+            <View style={{ gap: 12 }}>
+              {RUBRIC.map((r, i) => (
+                <View key={i}>
+                  <Row style={{ justifyContent: "space-between", marginBottom: 5 }}>
+                    <Text style={{ fontSize: 11, color: C.textSub, fontWeight: "600" }}>{r.label}</Text>
+                    <Text style={{ fontSize: 11, color: C.textMuted }}>
+                      {r.earned}/{r.max}
+                    </Text>
+                  </Row>
+                  <ProgressBar pct={(r.earned / r.max) * 100} color={r.earned > 0 ? C.teal : C.border} />
+                </View>
+              ))}
+            </View>
+          </Card>
+        </View>
+      </Row>
+    </ScrollView>
+  );
+}
