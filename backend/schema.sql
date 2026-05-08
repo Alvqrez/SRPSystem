@@ -136,9 +136,9 @@ CREATE TABLE IF NOT EXISTS citas (
 --  Hash generado con bcrypt rounds=10
 -- ============================================================
 INSERT IGNORE INTO usuarios (nombre, apellidos, correo, password_hash, rol) VALUES
-('Ana',     'García Mendoza',   'ana.garcia@itm.edu.mx',     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHuu', 'residente'),
-('Luis',    'Hernández Ruiz',   'luis.hernandez@itm.edu.mx', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHuu', 'residente'),
-('Sofía',   'Martínez López',   'sofia.martinez@itm.edu.mx', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHuu', 'residente'),
-('Marco',   'Reyes Torres',     'marco.reyes@itm.edu.mx',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHuu', 'asesor'),
-('Laura',   'Vega Salinas',     'laura.vega@itm.edu.mx',     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHuu', 'asesor'),
-('Carlos',  'Mendoza Ibarra',   'director@itm.edu.mx',       '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHuu', 'jefe');
+('Ana',     'García Mendoza',   'ana.garcia@itm.edu.mx',     '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'residente'),
+('Luis',    'Hernández Ruiz',   'luis.hernandez@itm.edu.mx', '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'residente'),
+('Sofía',   'Martínez López',   'sofia.martinez@itm.edu.mx', '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'residente'),
+('Marco',   'Reyes Torres',     'marco.reyes@itm.edu.mx',    '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'asesor'),
+('Laura',   'Vega Salinas',     'laura.vega@itm.edu.mx',     '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'asesor'),
+('Carlos',  'Mendoza Ibarra',   'director@itm.edu.mx',       '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'jefe');

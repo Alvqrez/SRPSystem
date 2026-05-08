@@ -293,6 +293,8 @@ export default function LoginScreen({ onLogin, loginError = "" }) {
                 secureTextEntry={!showPass}
                 onFocus={() => setFocus("password")}
                 onBlur={() => setFocus(null)}
+                returnKeyType="send" // ← AÑADE ESTO
+                onSubmitEditing={handleLogin} // ← Y ESTO
                 style={[
                   inputStyle("password"),
                   { paddingLeft: 36, paddingRight: 40 },
