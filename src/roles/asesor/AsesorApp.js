@@ -4,31 +4,29 @@ import C from "../../constants/colors";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
 
-// Pantallas del asesor
 import DashAsesor from "./DashAsesor";
 import GestionProyectos from "../../screens/GestionProyectos";
 import Seguimiento from "../../screens/Seguimiento";
 import Notificaciones from "../../screens/Notificaciones";
 import CalendarioCitas from "../../screens/CalendarioCitas";
 
-// Navegación específica del asesor
 const NAV_ASESOR = [
-  { id: "dashboard",      label: "Dashboard",      icon: "grid"      },
-  { id: "proyectos",      label: "Proyectos",      icon: "folder"    },
-  { id: "seguimiento",    label: "Seguimiento",    icon: "file-text" },
-  { id: "notificaciones", label: "Notificaciones", icon: "bell"      },
-  { id: "calendario",     label: "Calendario",     icon: "calendar"  },
+  { id: "dashboard", label: "Dashboard", icon: "grid" },
+  { id: "proyectos", label: "Proyectos", icon: "folder" },
+  { id: "seguimiento", label: "Seguimiento", icon: "file-text" },
+  { id: "notificaciones", label: "Notificaciones", icon: "bell" },
+  { id: "calendario", label: "Calendario", icon: "calendar" },
 ];
 
 export default function AsesorApp({ onLogout }) {
   const [activeNav, setActiveNav] = useState("dashboard");
 
   const views = {
-    dashboard:      <DashAsesor />,
-    proyectos:      <GestionProyectos />,
-    seguimiento:    <Seguimiento />,
+    dashboard: <DashAsesor onNavigate={setActiveNav} />,
+    proyectos: <GestionProyectos />,
+    seguimiento: <Seguimiento />,
     notificaciones: <Notificaciones />,
-    calendario:     <CalendarioCitas />,
+    calendario: <CalendarioCitas />,
   };
 
   return (
@@ -50,6 +48,7 @@ export default function AsesorApp({ onLogout }) {
       <View style={{ flex: 1, flexDirection: "column" }}>
         <TopBar
           activeNav={activeNav}
+          setActiveNav={setActiveNav}
           navItems={NAV_ASESOR}
           role="Asesor"
           onLogout={onLogout}
