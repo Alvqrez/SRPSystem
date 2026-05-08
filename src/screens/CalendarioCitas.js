@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, TextInput } from "react-native";
+import { Alert, View, Text, TouchableOpacity, ScrollView, TextInput } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import { Row, Card, Badge } from "../components";
@@ -11,6 +11,20 @@ const DAYS_IN_MONTH = 31;
 const START_DAY = 6; // Saturday
 
 const WEEK_DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const MONTHS = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
 
 const EVENTS = {
   5:  [{ label: "Asesoría grupal",      color: C.blue,   bg: C.blueLight }],
@@ -62,19 +76,88 @@ const UPCOMING = [
 
 const FORM_TYPES = ["Asesoría", "Revisión", "Evaluación", "Entrega", "Otro"];
 
+const monthKey = (date) => `${date.getFullYear()}-${date.getMonth()}`;
+
 export default function CalendarioCitas() {
   const [selected, setSelected] = useState(18);
+  const [monthDate, setMonthDate] = useState(new Date(2024, 11, 1));
+  const [events, setEvents] = useState({ "2024-11": EVENTS });
+  const [upcoming, setUpcoming] = useState(UPCOMING);
   const [formType, setFormType] = useState("Asesoría");
   const [formDate, setFormDate] = useState("");
   const [formTime, setFormTime] = useState("");
   const [formNotes, setFormNotes] = useState("");
 
-  // Build calendar grid cells
+  const monthName = `${MONTHS[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
+  const currentEvents = events[monthKey(monthDate)] || {};
+  const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
+  const startDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1).getDay();
   const cells = [];
-  for (let i = 0; i < START_DAY; i++) cells.push(null);
-  for (let d = 1; d <= DAYS_IN_MONTH; d++) cells.push(d);
+  for (let i = 0; i < startDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
-  const today = 7; // simulate "today" as Dec 7
+  const today = monthDate.getMonth() === 11 && monthDate.getFullYear() === 2024 ? 7 : null;
+
+  const changeMonth = (delta) => {
+    setMonthDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
+    setSelected(null);
+  };
+
+  const startNewAppointment = () => {
+    setFormDate("");
+    setFormTime("");
+    setFormNotes("");
+  };
+
+  const confirmAppointment = () => {
+    const match = formDate.trim().match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+    if (!match || !formTime.trim()) {
+      Alert.alert("Datos incompletos", "Captura fecha con formato DD/MM/AAAA y hora.");
+      return;
+    }
+
+    const day = Number(match[1]);
+    const month = Number(match[2]) - 1;
+    const year = Number(match[3]);
+    const date = new Date(year, month, day);
+
+    if (date.getMonth() !== month || date.getDate() !== day) {
+      Alert.alert("Fecha invalida", "Revisa la fecha de la cita.");
+      return;
+    }
+
+    const title = formNotes.trim() || formType;
+    const newEvent = { label: title, color: C.teal, bg: C.tealLight };
+    const appointmentDate = new Date(year, month, 1);
+    const appointmentKey = monthKey(appointmentDate);
+    setEvents((prev) => ({
+      ...prev,
+      [appointmentKey]: {
+        ...(prev[appointmentKey] || {}),
+        [day]: [...(prev[appointmentKey]?.[day] || []), newEvent],
+      },
+    }));
+    setUpcoming((prev) => [
+      ...prev,
+      {
+        day,
+        month: MONTHS[month].slice(0, 3),
+        monthIndex: month,
+        year,
+        title,
+        time: formTime.trim(),
+        color: C.teal,
+        bg: C.tealLight,
+        icon: "calendar",
+      },
+    ]);
+    setMonthDate(appointmentDate);
+    setSelected(day);
+    setFormDate("");
+    setFormTime("");
+    setFormNotes("");
+    Alert.alert("Cita agendada", "La cita se agrego al calendario.");
+  };
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 24 }}>
@@ -85,6 +168,7 @@ export default function CalendarioCitas() {
           <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>Agenda y gestión de reuniones</Text>
         </View>
         <TouchableOpacity
+          onPress={startNewAppointment}
           style={{
             flexDirection: "row",
             alignItems: "center",
@@ -107,6 +191,7 @@ export default function CalendarioCitas() {
             {/* Month nav */}
             <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
               <TouchableOpacity
+                onPress={() => changeMonth(-1)}
                 style={{
                   width: 34,
                   height: 34,
@@ -120,8 +205,9 @@ export default function CalendarioCitas() {
               >
                 <Feather name="chevron-left" size={16} color={C.textMuted} />
               </TouchableOpacity>
-              <Text style={{ fontSize: 15, fontWeight: "800", color: C.text }}>{MONTH_NAME}</Text>
+              <Text style={{ fontSize: 15, fontWeight: "800", color: C.text }}>{monthName}</Text>
               <TouchableOpacity
+                onPress={() => changeMonth(1)}
                 style={{
                   width: 34,
                   height: 34,
@@ -151,7 +237,7 @@ export default function CalendarioCitas() {
               {Array.from({ length: Math.ceil(cells.length / 7) }).map((_, rowIdx) => (
                 <Row key={rowIdx} style={{ marginBottom: 4 }}>
                   {cells.slice(rowIdx * 7, rowIdx * 7 + 7).map((day, colIdx) => {
-                    const hasEvent = day && EVENTS[day];
+                    const hasEvent = day && currentEvents[day];
                     const isSelected = day === selected;
                     const isToday = day === today;
                     return (
@@ -190,7 +276,7 @@ export default function CalendarioCitas() {
                             </Text>
                             {hasEvent && (
                               <View style={{ gap: 2, alignItems: "center" }}>
-                                {EVENTS[day].slice(0, 2).map((ev, ei) => (
+                                {currentEvents[day].slice(0, 2).map((ev, ei) => (
                                   <View
                                     key={ei}
                                     style={{
@@ -236,16 +322,16 @@ export default function CalendarioCitas() {
                 </View>
                 <View>
                   <Text style={{ fontSize: 13, fontWeight: "700", color: C.text }}>
-                    {selected} de Diciembre 2024
+                    {selected} de {monthName}
                   </Text>
                   <Text style={{ fontSize: 11, color: C.textMuted }}>
-                    {EVENTS[selected] ? `${EVENTS[selected].length} evento(s)` : "Sin eventos"}
+                    {currentEvents[selected] ? `${currentEvents[selected].length} evento(s)` : "Sin eventos"}
                   </Text>
                 </View>
               </Row>
 
-              {EVENTS[selected] ? (
-                EVENTS[selected].map((ev, i) => (
+              {currentEvents[selected] ? (
+                currentEvents[selected].map((ev, i) => (
                   <Row
                     key={i}
                     style={{
@@ -296,10 +382,15 @@ export default function CalendarioCitas() {
               Próximas Citas
             </Text>
             <View style={{ gap: 10 }}>
-              {UPCOMING.map((ev, i) => (
+              {upcoming.map((ev, i) => (
                 <TouchableOpacity
                   key={i}
-                  onPress={() => setSelected(ev.day)}
+                  onPress={() => {
+                    if (ev.year !== undefined && ev.monthIndex !== undefined) {
+                      setMonthDate(new Date(ev.year, ev.monthIndex, 1));
+                    }
+                    setSelected(ev.day);
+                  }}
                   activeOpacity={0.8}
                   style={{
                     flexDirection: "row",
@@ -457,6 +548,7 @@ export default function CalendarioCitas() {
 
             {/* Submit */}
             <TouchableOpacity
+              onPress={confirmAppointment}
               style={{
                 backgroundColor: C.teal,
                 borderRadius: 9,

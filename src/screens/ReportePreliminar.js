@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { Alert, View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import { Row, Card, Badge } from "../components";
@@ -33,9 +33,13 @@ export default function ReportePreliminar() {
     justificacion: "",
   });
   const [actividades, setActividades] = useState(["", "", "", "", "", "", ""]);
+  const [induccion, setInduccion] = useState(
+    Array.from({ length: 16 }, (_, index) => index === 0)
+  );
   const [cronograma, setCronograma] = useState(
     Array(7).fill(null).map(() => Array(16).fill(false))
   );
+  const [savedAt, setSavedAt] = useState(null);
 
   const updateField = (key, value) => setFormData({ ...formData, [key]: value });
   const updateActividad = (index, value) => {
@@ -47,6 +51,21 @@ export default function ReportePreliminar() {
     const copy = cronograma.map((r) => [...r]);
     copy[row][col] = !copy[row][col];
     setCronograma(copy);
+  };
+  const toggleInduccion = (col) => {
+    const copy = [...induccion];
+    copy[col] = !copy[col];
+    setInduccion(copy);
+  };
+
+  const saveReport = () => {
+    if (!formData.nombreProyecto.trim()) {
+      Alert.alert("Falta informacion", "Escribe el nombre del proyecto antes de guardar.");
+      return;
+    }
+
+    setSavedAt(new Date().toLocaleString());
+    Alert.alert("Reporte guardado", "El reporte preliminar se guardo localmente.");
   };
 
   const fuentes = [
@@ -255,8 +274,10 @@ export default function ReportePreliminar() {
                 <Text style={{ fontSize: 11, color: C.textSub }} numberOfLines={1}>Inducción</Text>
               </View>
               {Array.from({ length: 16 }, (_, col) => (
-                <TouchableOpacity key={col} style={{ width: 32, height: 28, alignItems: "center", justifyContent: "center" }}>
-                  <View style={{ width: 18, height: 18, borderRadius: 4, backgroundColor: col === 0 ? C.teal : C.bg, borderWidth: 1, borderColor: col === 0 ? C.teal : C.border }} />
+                <TouchableOpacity key={col} onPress={() => toggleInduccion(col)} style={{ width: 32, height: 28, alignItems: "center", justifyContent: "center" }}>
+                  <View style={{ width: 18, height: 18, borderRadius: 4, backgroundColor: induccion[col] ? C.teal : C.bg, borderWidth: 1, borderColor: induccion[col] ? C.teal : C.border }}>
+                    {induccion[col] && <Feather name="check" size={10} color="white" />}
+                  </View>
                 </TouchableOpacity>
               ))}
             </Row>
@@ -280,7 +301,26 @@ export default function ReportePreliminar() {
       </Card>
 
       {/* Botón guardar */}
-      <TouchableOpacity style={{ backgroundColor: C.teal, borderRadius: 12, padding: 16, alignItems: "center", marginBottom: 40 }}>
+      {savedAt && (
+        <View
+          style={{
+            backgroundColor: C.greenLight,
+            borderWidth: 1,
+            borderColor: C.green,
+            borderRadius: 10,
+            padding: 12,
+            marginBottom: 14,
+          }}
+        >
+          <Row style={{ alignItems: "center", gap: 8 }}>
+            <Feather name="check-circle" size={16} color={C.green} />
+            <Text style={{ fontSize: 12, color: C.green, fontWeight: "700" }}>
+              Guardado localmente: {savedAt}
+            </Text>
+          </Row>
+        </View>
+      )}
+      <TouchableOpacity onPress={saveReport} style={{ backgroundColor: C.teal, borderRadius: 12, padding: 16, alignItems: "center", marginBottom: 40 }}>
         <Row style={{ alignItems: "center", gap: 8 }}>
           <Feather name="save" size={18} color="white" />
           <Text style={{ color: "white", fontWeight: "800", fontSize: 15 }}>Guardar Reporte Preliminar</Text>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { Alert, View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import { Row, Card, ProgressBar, Badge } from "../components";
@@ -38,12 +38,35 @@ const RUBRIC = [
 
 export default function ReporteFinal() {
   const [uploadHover, setUploadHover] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const doneCount = CHECKLIST.filter((i) => i.done).length;
   const pct = Math.round((doneCount / CHECKLIST.length) * 100);
 
   const totalEarned = RUBRIC.reduce((s, r) => s + r.earned, 0);
   const totalMax = RUBRIC.reduce((s, r) => s + r.max, 0);
+
+  const selectFile = () => {
+    if (!globalThis?.document?.createElement) {
+      Alert.alert("Seleccionar archivo", "La seleccion de archivos esta disponible en la version web.");
+      return;
+    }
+
+    const input = globalThis.document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    input.onchange = (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      setSelectedFile({
+        name: file.name,
+        size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+        type: file.type || "Documento",
+      });
+    };
+    input.click();
+  };
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 24 }}>
@@ -251,6 +274,7 @@ export default function ReporteFinal() {
               Subir Documento
             </Text>
             <TouchableOpacity
+              onPress={selectFile}
               onPressIn={() => setUploadHover(true)}
               onPressOut={() => setUploadHover(false)}
               activeOpacity={0.8}
@@ -285,6 +309,7 @@ export default function ReporteFinal() {
                 o haz clic para seleccionar
               </Text>
               <TouchableOpacity
+                onPress={selectFile}
                 style={{
                   backgroundColor: C.teal,
                   borderRadius: 8,
@@ -295,6 +320,29 @@ export default function ReporteFinal() {
                 <Text style={{ fontSize: 12, color: "white", fontWeight: "700" }}>Seleccionar archivo</Text>
               </TouchableOpacity>
             </TouchableOpacity>
+            {selectedFile && (
+              <View
+                style={{
+                  borderWidth: 1,
+                  borderColor: C.tealLight,
+                  borderRadius: 10,
+                  backgroundColor: C.tealLighter,
+                  padding: 12,
+                  marginBottom: 12,
+                }}
+              >
+                <Row style={{ alignItems: "center", gap: 8 }}>
+                  <Feather name="file-text" size={16} color={C.teal} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: C.text }}>
+                      {selectedFile.name}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: C.textMuted }}>{selectedFile.size}</Text>
+                  </View>
+                  <Badge text="Listo" color={C.green} bg={C.greenLight} />
+                </Row>
+              </View>
+            )}
             <Text style={{ fontSize: 11, color: C.textLight, textAlign: "center" }}>
               Formatos aceptados: PDF, DOCX · Tamaño máximo: 25 MB
             </Text>

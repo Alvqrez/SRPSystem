@@ -27,7 +27,7 @@ function JefeAppInner({ usuario, onLogout }) {
     dashboard:            <DashJefe onNavigate={setActiveNav} />,
     empresas:             <GestionEmpresas />,
     proyectos:            <GestionProyectos />,
-    "validacion-fuentes": <ValidacionFuentes />,
+    "validacion-fuentes": <ValidacionFuentes onNavigate={setActiveNav} />,
     notificaciones:       <Notificaciones />,
     calendario:           <CalendarioCitas />,
   };

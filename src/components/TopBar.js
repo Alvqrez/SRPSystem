@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
@@ -5,6 +6,7 @@ import Row from "./Row";
 import { useNotificaciones } from "../context/NotificacionesContext";
 
 export default function TopBar({ activeNav, navItems = [], setActiveNav, role, onLogout, usuario }) {
+  const [query, setQuery] = useState("");
   const { unreadCount } = useNotificaciones() || { unreadCount: 0 };
   const currentItem = navItems.find((item) => item.id === activeNav);
   const pageTitle   = currentItem ? currentItem.label : "Dashboard";
@@ -12,6 +14,14 @@ export default function TopBar({ activeNav, navItems = [], setActiveNav, role, o
   const initials    = usuario?.nombre
     ? usuario.nombre.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "??";
+  const searchSection = () => {
+    if (!query.trim()) return;
+
+    const match = navItems.find((item) =>
+      item.label.toLowerCase().includes(query.trim().toLowerCase()),
+    );
+    if (match && setActiveNav) setActiveNav(match.id);
+  };
 
   return (
     <View style={{ backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border,
@@ -29,7 +39,14 @@ export default function TopBar({ activeNav, navItems = [], setActiveNav, role, o
         {/* Buscador */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: C.bg, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 7, borderWidth: 1, borderColor: C.border }}>
           <Feather name="search" size={13} color={C.textLight} />
-          <TextInput placeholder="Buscar..." style={{ fontSize: 13, color: C.text, width: 130 }} placeholderTextColor={C.textLight} />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            onSubmitEditing={searchSection}
+            placeholder="Buscar..."
+            style={{ fontSize: 13, color: C.text, width: 130 }}
+            placeholderTextColor={C.textLight}
+          />
         </View>
 
         {/* Campana con contador dinámico */}

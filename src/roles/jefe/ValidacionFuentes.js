@@ -37,7 +37,7 @@ const FUENTE_STYLES = {
   empresa: { bg: "#dcfce7", color: "#166534", label: "Propuesta Empresa" },
 };
 
-export default function ValidacionFuentes() {
+export default function ValidacionFuentes({ onNavigate }) {
   const [estudiantes, setEstudiantes] = useState(
     ESTUDIANTES.map((e) => ({ ...e, autorizado: false }))
   );
@@ -65,7 +65,7 @@ export default function ValidacionFuentes() {
         {/* Navegación */}
         <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: C.border }}>
           <Row style={{ alignItems: "center", gap: 12 }}>
-            <TouchableOpacity style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+            <TouchableOpacity onPress={() => onNavigate && onNavigate("proyectos")} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
               <Text style={{ fontSize: 18, color: C.teal }}>←</Text>
               <Text style={{ fontSize: 14, fontWeight: "600", color: C.teal }}>Volver al listado</Text>
             </TouchableOpacity>

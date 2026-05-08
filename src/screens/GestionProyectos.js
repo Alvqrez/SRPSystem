@@ -44,6 +44,8 @@ export default function GestionProyectos() {
   const [active, setActive]       = useState(null);
   const [modalVisible, setModal]  = useState(false);
   const [menuKey, setMenuKey]     = useState(null); // "colId-index" del card activo
+  const [showFilter, setShowFilter] = useState(false);
+  const [priorityFilter, setPriorityFilter] = useState("Todas");
   const [form, setForm]           = useState(EMPTY_FORM);
 
   const priorityOpts = [
@@ -55,6 +57,40 @@ export default function GestionProyectos() {
   const openModal = (colId = "propuesto") => {
     setForm({ ...EMPTY_FORM, targetCol: colId });
     setModal(true);
+  };
+
+  const filteredColumns = columns.map((col) => ({
+    ...col,
+    cards:
+      priorityFilter === "Todas"
+        ? col.cards.map((card, index) => ({ ...card, originalIndex: index }))
+        : col.cards
+            .map((card, index) => ({ ...card, originalIndex: index }))
+            .filter((card) => card.priority === priorityFilter),
+  }));
+
+  const moveProject = (fromColId, cardIndex) => {
+    const colIndex = columns.findIndex((col) => col.id === fromColId);
+    if (colIndex < 0 || colIndex === columns.length - 1) return;
+
+    setColumns((prev) => {
+      const next = prev.map((col) => ({ ...col, cards: [...col.cards] }));
+      const [card] = next[colIndex].cards.splice(cardIndex, 1);
+      next[colIndex + 1].cards.push(card);
+      return next;
+    });
+    setMenuKey(null);
+  };
+
+  const deleteProject = (fromColId, cardIndex) => {
+    setColumns((prev) =>
+      prev.map((col) =>
+        col.id === fromColId
+          ? { ...col, cards: col.cards.filter((_, index) => index !== cardIndex) }
+          : col,
+      ),
+    );
+    setMenuKey(null);
   };
 
   const saveProject = () => {
@@ -93,10 +129,31 @@ export default function GestionProyectos() {
             </Text>
           </View>
           <Row style={{ gap: 10 }}>
-            <TouchableOpacity style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: C.border, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 9, backgroundColor: C.card }}>
+            <View style={{ position: "relative" }}>
+            <TouchableOpacity onPress={() => setShowFilter(!showFilter)} style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: priorityFilter !== "Todas" ? C.teal : C.border, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 9, backgroundColor: priorityFilter !== "Todas" ? C.tealLighter : C.card }}>
               <Feather name="filter" size={13} color={C.textMuted} />
-              <Text style={{ fontSize: 12, color: C.textMuted, fontWeight: "600" }}>Filtrar</Text>
+              <Text style={{ fontSize: 12, color: priorityFilter !== "Todas" ? C.teal : C.textMuted, fontWeight: "600" }}>Filtrar</Text>
             </TouchableOpacity>
+            {showFilter && (
+              <View style={{ position: "absolute", top: 42, right: 0, width: 190, backgroundColor: C.card, borderRadius: 10, borderWidth: 1, borderColor: C.border, padding: 12, zIndex: 50 }}>
+                <Text style={{ fontSize: 11, color: C.textMuted, fontWeight: "700", marginBottom: 8 }}>Prioridad</Text>
+                {["Todas", "Alta", "Media", "Baja"].map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    onPress={() => {
+                      setPriorityFilter(option);
+                      setShowFilter(false);
+                    }}
+                    style={{ paddingVertical: 7 }}
+                  >
+                    <Text style={{ fontSize: 12, color: priorityFilter === option ? C.teal : C.textSub, fontWeight: priorityFilter === option ? "800" : "600" }}>
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+            </View>
             <TouchableOpacity
               onPress={() => openModal("propuesto")}
               style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: C.teal, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 9 }}
@@ -110,7 +167,7 @@ export default function GestionProyectos() {
         {/* Kanban Board */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <Row style={{ gap: 14, alignItems: "flex-start" }}>
-            {columns.map((col) => (
+            {filteredColumns.map((col) => (
               <View key={col.id} style={{ width: 260, backgroundColor: "#F8FAFC", borderRadius: 14, borderWidth: 1, borderColor: C.border, overflow: "hidden" }}>
 
                 {/* Column Header */}
@@ -137,10 +194,20 @@ export default function GestionProyectos() {
                     >
                       <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                         <Badge text={card.priority} color={card.priorityColor} bg={card.priorityBg} />
-                        <TouchableOpacity onPress={(e) => { e.stopPropagation(); setMenuKey(menuKey === `${col.id}-${i}` ? null : `${col.id}-${i}`); }}>
+                        <TouchableOpacity onPress={(e) => { e.stopPropagation(); setMenuKey(menuKey === `${col.id}-${card.originalIndex}` ? null : `${col.id}-${card.originalIndex}`); }}>
                         <Feather name="more-horizontal" size={14} color={C.textLight} />
                       </TouchableOpacity>
                       </Row>
+                      {menuKey === `${col.id}-${card.originalIndex}` && (
+                        <View style={{ position: "absolute", top: 38, right: 10, backgroundColor: C.card, borderRadius: 8, borderWidth: 1, borderColor: C.border, zIndex: 20, padding: 8, minWidth: 150 }}>
+                          <TouchableOpacity onPress={() => moveProject(col.id, card.originalIndex)} style={{ paddingVertical: 7 }}>
+                            <Text style={{ fontSize: 12, color: C.textSub, fontWeight: "600" }}>Mover a siguiente</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => deleteProject(col.id, card.originalIndex)} style={{ paddingVertical: 7 }}>
+                            <Text style={{ fontSize: 12, color: C.red, fontWeight: "600" }}>Eliminar</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
                       <Text style={{ fontSize: 13, fontWeight: "700", color: C.text, marginBottom: 10, lineHeight: 18 }}>{card.title}</Text>
                       <Row style={{ flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
                         {card.tags.map((tag, ti) => (

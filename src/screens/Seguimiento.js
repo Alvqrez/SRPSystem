@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { Alert, Modal, Pressable, View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import { Row, Card, StatCard, Badge, ProgressBar } from "../components";
@@ -82,7 +82,89 @@ const REPORTS = [
 ];
 
 export default function Seguimiento() {
+  const [reports, setReports] = useState(REPORTS);
   const [selected, setSelected] = useState(1);
+  const [viewingReport, setViewingReport] = useState(null);
+
+  const exportReports = () => {
+    const rows = reports
+      .map(
+        (report) => `
+          <tr>
+            <td>${report.title}</td>
+            <td>${report.status}</td>
+            <td>${report.score ?? "Pendiente"}</td>
+            <td>${report.submitted ?? "Sin entregar"}</td>
+            <td>${report.reviewer}</td>
+          </tr>
+        `,
+      )
+      .join("");
+
+    const html = `
+      <html>
+        <head>
+          <title>Seguimiento de Reportes</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 32px; color: #0F172A; }
+            h1 { margin-bottom: 4px; }
+            p { color: #64748B; margin-top: 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+            th, td { border: 1px solid #CBD5E1; padding: 10px; text-align: left; }
+            th { background: #F1F5F9; }
+          </style>
+        </head>
+        <body>
+          <h1>Seguimiento de Reportes</h1>
+          <p>Residencia Industrial - 2024-B</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Reporte</th>
+                <th>Estado</th>
+                <th>Calificacion</th>
+                <th>Envio</th>
+                <th>Revisor</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    if (globalThis?.window?.open) {
+      const win = globalThis.window.open("", "_blank");
+      if (!win) {
+        Alert.alert("Exportar", "Permite ventanas emergentes para generar el PDF.");
+        return;
+      }
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      win.print();
+      return;
+    }
+
+    Alert.alert("Exportar", "La exportacion a PDF esta disponible en la version web.");
+  };
+
+  const deliverReport = (id) => {
+    setReports((prev) =>
+      prev.map((report) =>
+        report.id === id
+          ? {
+              ...report,
+              status: "En Revision",
+              statusColor: C.amber,
+              statusBg: C.amberLight,
+              submitted: "Hoy",
+            }
+          : report,
+      ),
+    );
+    Alert.alert("Reporte entregado", "El reporte se marco como enviado y queda en revision.");
+  };
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 24 }}>
@@ -93,6 +175,7 @@ export default function Seguimiento() {
           <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>Residencia Industrial · 2024-B</Text>
         </View>
         <TouchableOpacity
+          onPress={exportReports}
           style={{
             flexDirection: "row",
             alignItems: "center",
@@ -167,7 +250,7 @@ export default function Seguimiento() {
       </Text>
 
       <View style={{ gap: 12 }}>
-        {REPORTS.map((report) => {
+        {reports.map((report) => {
           const isOpen = selected === report.id;
           return (
             <Card key={report.id} style={{ padding: 0, overflow: "hidden" }}>
@@ -322,6 +405,7 @@ export default function Seguimiento() {
                   {/* Action buttons */}
                   <Row style={{ gap: 8, marginTop: 14, justifyContent: "flex-end" }}>
                     <TouchableOpacity
+                      onPress={() => setViewingReport(report)}
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
@@ -339,6 +423,7 @@ export default function Seguimiento() {
                     </TouchableOpacity>
                     {report.status === "Pendiente" && (
                       <TouchableOpacity
+                        onPress={() => deliverReport(report.id)}
                         style={{
                           flexDirection: "row",
                           alignItems: "center",
@@ -360,6 +445,77 @@ export default function Seguimiento() {
           );
         })}
       </View>
+
+      <Modal visible={!!viewingReport} transparent animationType="fade">
+        <Pressable
+          onPress={() => setViewingReport(null)}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15,23,42,0.45)",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          <Pressable
+            onPress={() => {}}
+            style={{
+              width: "100%",
+              maxWidth: 620,
+              backgroundColor: C.card,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: C.border,
+              padding: 22,
+            }}
+          >
+            {viewingReport && (
+              <>
+                <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                  <Text style={{ fontSize: 18, fontWeight: "800", color: C.text }}>
+                    {viewingReport.title}
+                  </Text>
+                  <TouchableOpacity onPress={() => setViewingReport(null)}>
+                    <Feather name="x" size={20} color={C.textMuted} />
+                  </TouchableOpacity>
+                </Row>
+                <Text style={{ fontSize: 13, color: C.textMuted, marginBottom: 12 }}>
+                  {viewingReport.subtitle}
+                </Text>
+                <Row style={{ gap: 8, marginBottom: 14 }}>
+                  <Badge text={viewingReport.status} color={viewingReport.statusColor} bg={viewingReport.statusBg} />
+                  <Badge
+                    text={`Calificacion: ${viewingReport.score ?? "Pendiente"}`}
+                    color={viewingReport.score ? C.green : C.textMuted}
+                    bg={viewingReport.score ? C.greenLight : C.bg}
+                  />
+                </Row>
+                <Text style={{ fontSize: 13, fontWeight: "700", color: C.textSub, marginBottom: 8 }}>
+                  Secciones
+                </Text>
+                <View style={{ gap: 6, marginBottom: 14 }}>
+                  {viewingReport.items.map((item, idx) => (
+                    <Row key={idx} style={{ alignItems: "center", gap: 8 }}>
+                      <Feather
+                        name={item.done ? "check-circle" : "circle"}
+                        size={14}
+                        color={item.done ? C.green : C.textLight}
+                      />
+                      <Text style={{ fontSize: 12, color: C.textSub }}>{item.label}</Text>
+                    </Row>
+                  ))}
+                </View>
+                <Text style={{ fontSize: 13, fontWeight: "700", color: C.textSub, marginBottom: 8 }}>
+                  Retroalimentacion
+                </Text>
+                <Text style={{ fontSize: 12, color: C.textMuted, lineHeight: 18 }}>
+                  {viewingReport.feedback || "Este reporte todavia no tiene retroalimentacion."}
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }

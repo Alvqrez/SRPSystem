@@ -88,6 +88,7 @@ const NOTIFICATIONS = [
 
 export default function Notificaciones() {
   const [localNotifications, setLocalNotifications] = useState(NOTIFICATIONS);
+  const [activeTab, setActiveTab] = useState("Todas");
   const {
     notifications: contextNotifications,
     setNotifications: setContextNotifications,
@@ -111,6 +112,13 @@ export default function Notificaciones() {
 
   const unread = notifications.filter((n) => n.unread).length;
   const read = notifications.filter((n) => !n.unread).length;
+  const visibleNotifications = notifications.filter((notif) => {
+    if (activeTab === "Sin Leer") return notif.unread;
+    if (activeTab === "Reportes") return notif.type === "Reporte";
+    if (activeTab === "Citas") return notif.type === "Cita";
+    if (activeTab === "Alertas") return notif.type === "Alerta";
+    return true;
+  });
 
   const markAllRead = () => {
     setNotificationState((prev) => prev.map((n) => ({ ...n, unread: false })));
@@ -211,20 +219,21 @@ export default function Notificaciones() {
         {["Todas", "Sin Leer", "Reportes", "Citas", "Alertas"].map((tab) => (
           <TouchableOpacity
             key={tab}
+            onPress={() => setActiveTab(tab)}
             style={{
               paddingHorizontal: 13,
               paddingVertical: 7,
               borderRadius: 20,
-              backgroundColor: tab === "Todas" ? C.teal : C.card,
+              backgroundColor: tab === activeTab ? C.teal : C.card,
               borderWidth: 1,
-              borderColor: tab === "Todas" ? C.teal : C.border,
+              borderColor: tab === activeTab ? C.teal : C.border,
             }}
           >
             <Text
               style={{
                 fontSize: 12,
                 fontWeight: "600",
-                color: tab === "Todas" ? "white" : C.textMuted,
+                color: tab === activeTab ? "white" : C.textMuted,
               }}
             >
               {tab}
@@ -235,7 +244,7 @@ export default function Notificaciones() {
 
       {/* Notification Cards */}
       <View style={{ gap: 10 }}>
-        {notifications.map((notif) => (
+        {visibleNotifications.map((notif) => (
           <Card
             key={notif.id}
             style={{
@@ -379,7 +388,7 @@ export default function Notificaciones() {
         ))}
       </View>
 
-      {notifications.length === 0 && (
+      {visibleNotifications.length === 0 && (
         <View style={{ alignItems: "center", paddingVertical: 40 }}>
           <View
             style={{
