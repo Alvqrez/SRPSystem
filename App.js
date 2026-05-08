@@ -25,6 +25,8 @@ export default function App() {
   const [usuario, setUsuario] = useState(null); // { rol, nombre }
   const [loginError, setLoginError] = useState("");
 
+  const rolNormalizado = usuario?.rol?.toLowerCase();
+
   // ── Lógica de login ─────────────────────────────────────────────────────────
   // Aquí se reemplaza el lookup local por:
   //   const res = await fetch("http://TU_IP:3001/api/auth/login", {
@@ -67,11 +69,11 @@ export default function App() {
     return <LoginScreen onLogin={handleLogin} loginError={loginError} />;
   }
 
-  if (usuario?.rol === "Residente")
+  if (rolNormalizado === "residente")
     return <ResidenteApp usuario={usuario} onLogout={handleLogout} />;
-  if (usuario?.rol === "Asesor")
+  if (rolNormalizado === "asesor")
     return <AsesorApp usuario={usuario} onLogout={handleLogout} />;
-  if (usuario?.rol === "Jefe de Vinculación")
+  if (rolNormalizado === "jefe")
     return <JefeApp usuario={usuario} onLogout={handleLogout} />;
 
   return <LoginScreen onLogin={handleLogin} loginError={loginError} />;

@@ -135,10 +135,14 @@ CREATE TABLE IF NOT EXISTS citas (
 --  Datos de prueba (contraseña de todos: "vinculatec123")
 --  Hash generado con bcrypt rounds=10
 -- ============================================================
-INSERT IGNORE INTO usuarios (nombre, apellidos, correo, password_hash, rol) VALUES
-('Ana',     'García Mendoza',   'ana.garcia@itm.edu.mx',     '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'residente'),
-('Luis',    'Hernández Ruiz',   'luis.hernandez@itm.edu.mx', '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'residente'),
-('Sofía',   'Martínez López',   'sofia.martinez@itm.edu.mx', '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'residente'),
-('Marco',   'Reyes Torres',     'marco.reyes@itm.edu.mx',    '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'asesor'),
-('Laura',   'Vega Salinas',     'laura.vega@itm.edu.mx',     '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'asesor'),
-('Carlos',  'Mendoza Ibarra',   'director@itm.edu.mx',       '$2a$10$KIX.gxfZ/q7mVaWLQAYiyu5/gP1TDNRPrYJmYvb1yB1pYPKziqfJa', 'jefe');
+INSERT INTO usuarios (nombre, apellidos, correo, password_hash, rol) VALUES
+('Ana',     'García Mendoza',   'ana.garcia@itm.edu.mx',     '$2a$10$6VMHImSgqWZEdmq3iYp40eVViXJp.VIvJ93lw87RCR0t0gCDdNESa', 'residente'),
+('Luis',    'Hernández Ruiz',   'luis.hernandez@itm.edu.mx', '$2a$10$6VMHImSgqWZEdmq3iYp40eVViXJp.VIvJ93lw87RCR0t0gCDdNESa', 'residente'),
+('Sofía',   'Martínez López',   'sofia.martinez@itm.edu.mx', '$2a$10$6VMHImSgqWZEdmq3iYp40eVViXJp.VIvJ93lw87RCR0t0gCDdNESa', 'residente'),
+('Marco',   'Reyes Torres',     'marco.reyes@itm.edu.mx',    '$2a$10$6VMHImSgqWZEdmq3iYp40eVViXJp.VIvJ93lw87RCR0t0gCDdNESa', 'asesor'),
+('Laura',   'Vega Salinas',     'laura.vega@itm.edu.mx',     '$2a$10$6VMHImSgqWZEdmq3iYp40eVViXJp.VIvJ93lw87RCR0t0gCDdNESa', 'asesor'),
+('Carlos',  'Mendoza Ibarra',   'director@itm.edu.mx',       '$2a$10$6VMHImSgqWZEdmq3iYp40eVViXJp.VIvJ93lw87RCR0t0gCDdNESa', 'jefe')
+ON DUPLICATE KEY UPDATE
+  password_hash = VALUES(password_hash),
+  rol = VALUES(rol),
+  activo = TRUE;
