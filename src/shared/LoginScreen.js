@@ -1,4 +1,10 @@
-import { View, Text, TextInput, TouchableOpacity, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import Row from "../components/Row";
