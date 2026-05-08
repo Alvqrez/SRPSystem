@@ -23,6 +23,9 @@ export default function LoginScreen({ onLogin, loginError = "" }) {
   const [showSupport, setSupport] = useState(false);
   const [showPass, setShowPass] = useState(false);
 
+  // Sincronizar error del padre (validación BD)
+  const displayError = loginError || error;
+
   // Animación de entrada
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
