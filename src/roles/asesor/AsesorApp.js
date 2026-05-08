@@ -3,6 +3,7 @@ import { View, ScrollView, Platform } from "react-native";
 import C from "../../constants/colors";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
+import { NotificacionesProvider } from "../../context/NotificacionesContext";
 
 import DashAsesor from "./DashAsesor";
 import GestionProyectos from "../../screens/GestionProyectos";
@@ -10,7 +11,7 @@ import Seguimiento from "../../screens/Seguimiento";
 import Notificaciones from "../../screens/Notificaciones";
 import CalendarioCitas from "../../screens/CalendarioCitas";
 
-const NAV_ASESOR = [
+const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "grid" },
   { id: "proyectos", label: "Proyectos", icon: "folder" },
   { id: "seguimiento", label: "Seguimiento", icon: "file-text" },
@@ -18,9 +19,8 @@ const NAV_ASESOR = [
   { id: "calendario", label: "Calendario", icon: "calendar" },
 ];
 
-export default function AsesorApp({ onLogout }) {
+function AsesorAppInner({ usuario, onLogout }) {
   const [activeNav, setActiveNav] = useState("dashboard");
-
   const views = {
     dashboard: <DashAsesor onNavigate={setActiveNav} />,
     proyectos: <GestionProyectos />,
@@ -28,7 +28,6 @@ export default function AsesorApp({ onLogout }) {
     notificaciones: <Notificaciones />,
     calendario: <CalendarioCitas />,
   };
-
   return (
     <View
       style={{
@@ -42,21 +41,31 @@ export default function AsesorApp({ onLogout }) {
         activeNav={activeNav}
         setActiveNav={setActiveNav}
         role="Asesor"
-        navItems={NAV_ASESOR}
+        navItems={NAV}
         onLogout={onLogout}
+        usuario={usuario}
       />
       <View style={{ flex: 1, flexDirection: "column" }}>
         <TopBar
           activeNav={activeNav}
           setActiveNav={setActiveNav}
-          navItems={NAV_ASESOR}
+          navItems={NAV}
           role="Asesor"
           onLogout={onLogout}
+          usuario={usuario}
         />
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 24 }}>
           {views[activeNav] || views.dashboard}
         </ScrollView>
       </View>
     </View>
+  );
+}
+
+export default function AsesorApp({ usuario, onLogout }) {
+  return (
+    <NotificacionesProvider initialUnread={4}>
+      <AsesorAppInner usuario={usuario} onLogout={onLogout} />
+    </NotificacionesProvider>
   );
 }

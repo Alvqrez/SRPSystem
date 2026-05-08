@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useState as _useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
@@ -42,6 +43,7 @@ export default function GestionProyectos() {
   const [columns, setColumns]     = useState(INITIAL_COLUMNS);
   const [active, setActive]       = useState(null);
   const [modalVisible, setModal]  = useState(false);
+  const [menuKey, setMenuKey]     = useState(null); // "colId-index" del card activo
   const [form, setForm]           = useState(EMPTY_FORM);
 
   const priorityOpts = [
@@ -135,7 +137,9 @@ export default function GestionProyectos() {
                     >
                       <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                         <Badge text={card.priority} color={card.priorityColor} bg={card.priorityBg} />
+                        <TouchableOpacity onPress={(e) => { e.stopPropagation(); setMenuKey(menuKey === `${col.id}-${i}` ? null : `${col.id}-${i}`); }}>
                         <Feather name="more-horizontal" size={14} color={C.textLight} />
+                      </TouchableOpacity>
                       </Row>
                       <Text style={{ fontSize: 13, fontWeight: "700", color: C.text, marginBottom: 10, lineHeight: 18 }}>{card.title}</Text>
                       <Row style={{ flexWrap: "wrap", gap: 5, marginBottom: 12 }}>

@@ -1,15 +1,78 @@
+import { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   Platform,
+  Animated,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import Row from "../components/Row";
 
-export default function LoginScreen({ loginRole, setLoginRole, onLogin }) {
+export default function LoginScreen({ onLogin, loginError = "" }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [focusField, setFocus] = useState(null);
+  const [hoverBtn, setHoverBtn] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showSupport, setSupport] = useState(false);
+  const [showPass, setShowPass] = useState(false);
+
+  // Animación de entrada
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleLogin = () => {
+    if (!email.trim()) {
+      setError("Ingresa tu correo institucional.");
+      return;
+    }
+    if (!password.trim()) {
+      setError("Ingresa tu contraseña.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    // Simula llamada al backend (reemplazar con fetch real)
+    setTimeout(() => {
+      setLoading(false);
+      onLogin(email.trim(), password);
+    }, 900);
+  };
+
+  const inputStyle = (field) => ({
+    padding: 11,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor:
+      focusField === field ? C.teal : error && !email ? C.red : C.border,
+    fontSize: 13,
+    color: C.text,
+    backgroundColor: focusField === field ? "#FAFFFE" : "#FAFAFA",
+    outlineStyle: "none", // web: quita outline nativo
+    transitionDuration: "150ms", // web: transición suave
+  });
+
   return (
     <View
       style={{
@@ -18,7 +81,7 @@ export default function LoginScreen({ loginRole, setLoginRole, onLogin }) {
         height: Platform.OS === "web" ? "100vh" : "100%",
       }}
     >
-      {/* Panel izquierdo */}
+      {/* ── Panel izquierdo ── */}
       <View
         style={{
           width: "40%",
@@ -55,7 +118,7 @@ export default function LoginScreen({ loginRole, setLoginRole, onLogin }) {
             marginBottom: 12,
           }}
         >
-          Sistema de Seguimiento de Residencias Profesionales
+          Sistema de Seguimiento de{"\n"}Residencias Profesionales
         </Text>
         <Text
           style={{
@@ -95,7 +158,7 @@ export default function LoginScreen({ loginRole, setLoginRole, onLogin }) {
         ))}
       </View>
 
-      {/* Panel derecho */}
+      {/* ── Panel derecho ── */}
       <View
         style={{
           flex: 1,
@@ -105,143 +168,349 @@ export default function LoginScreen({ loginRole, setLoginRole, onLogin }) {
           padding: 32,
         }}
       >
-        <View
+        <Animated.View
           style={{
             width: "100%",
             maxWidth: 420,
-            backgroundColor: C.card,
-            borderRadius: 16,
-            padding: 32,
-            borderWidth: 1,
-            borderColor: C.border,
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
           }}
         >
-          <Text
+          <View
             style={{
-              fontSize: 22,
-              fontWeight: "800",
-              color: C.text,
-              marginBottom: 4,
+              backgroundColor: C.card,
+              borderRadius: 18,
+              padding: 32,
+              borderWidth: 1,
+              borderColor: C.border,
+              shadowColor: "#000",
+              shadowOpacity: 0.07,
+              shadowRadius: 20,
+              shadowOffset: { width: 0, height: 8 },
+              elevation: 4,
             }}
           >
-            Iniciar Sesión
-          </Text>
-          <Text style={{ color: C.textMuted, fontSize: 13, marginBottom: 24 }}>
-            Selecciona tu rol e ingresa tus credenciales
-          </Text>
+            {/* Ícono lock animado */}
+            <View
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                backgroundColor: C.tealLight,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 18,
+              }}
+            >
+              <Feather name="lock" size={22} color={C.teal} />
+            </View>
 
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: "700",
-              color: C.textMuted,
-              textTransform: "uppercase",
-              letterSpacing: 0.8,
-              marginBottom: 8,
-            }}
-          >
-            Tipo de Usuario
-          </Text>
-          <Row style={{ gap: 8, marginBottom: 20 }}>
-            {[
-              ["residente", "Residente", "book-open"],
-              ["asesor", "Asesor", "user-check"],
-              ["jefe", "Jefe Vinc.", "briefcase"],
-            ].map(([val, label, icon]) => (
-              <TouchableOpacity
-                key={val}
-                onPress={() => setLoginRole(val)}
-                style={{
-                  flex: 1,
-                  padding: 10,
-                  borderRadius: 10,
-                  borderWidth: 2,
-                  borderColor: loginRole === val ? C.teal : C.border,
-                  backgroundColor: loginRole === val ? C.tealLight : "white",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-              >
-                <Feather
-                  name={icon}
-                  size={16}
-                  color={loginRole === val ? C.teal : C.textMuted}
-                />
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: "700",
-                    color: loginRole === val ? C.teal : C.textMuted,
-                  }}
-                >
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </Row>
+            <Text
+              style={{
+                fontSize: 22,
+                fontWeight: "800",
+                color: C.text,
+                marginBottom: 4,
+              }}
+            >
+              Iniciar Sesión
+            </Text>
+            <Text
+              style={{ color: C.textMuted, fontSize: 13, marginBottom: 24 }}
+            >
+              Ingresa tu correo institucional para continuar
+            </Text>
 
-          {[
-            ["Correo Electrónico", "ana.garcia@tecnolandia.edu.mx", false],
-            ["Contraseña", "••••••••", true],
-          ].map(([label, ph, secure]) => (
-            <View key={label} style={{ marginBottom: 14 }}>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: "600",
-                  color: C.textSub,
-                  marginBottom: 6,
-                }}
-              >
-                {label}
-              </Text>
+            {/* Correo */}
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "700",
+                color: C.textSub,
+                marginBottom: 6,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}
+            >
+              Correo Institucional
+            </Text>
+            <View style={{ position: "relative", marginBottom: 14 }}>
+              <Feather
+                name="mail"
+                size={14}
+                color={focusField === "email" ? C.teal : C.textLight}
+                style={{ position: "absolute", left: 12, top: 13, zIndex: 1 }}
+              />
               <TextInput
-                placeholder={ph}
-                secureTextEntry={secure}
-                defaultValue={ph}
-                style={{
-                  padding: 11,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: C.border,
-                  fontSize: 13,
-                  color: C.text,
-                  backgroundColor: "#FAFAFA",
+                value={email}
+                onChangeText={(v) => {
+                  setEmail(v);
+                  setError("");
                 }}
+                placeholder="usuario@itm.edu.mx"
+                placeholderTextColor={C.textLight}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                onFocus={() => setFocus("email")}
+                onBlur={() => setFocus(null)}
+                style={[inputStyle("email"), { paddingLeft: 36 }]}
               />
             </View>
-          ))}
 
-          <TouchableOpacity
-            onPress={onLogin}
-            style={{
-              backgroundColor: C.teal,
-              padding: 14,
-              borderRadius: 10,
-              alignItems: "center",
-              marginTop: 8,
-            }}
-          >
-            <Text style={{ color: "white", fontWeight: "800", fontSize: 15 }}>
-              Acceder a VinculaTec →
+            {/* Contraseña */}
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "700",
+                color: C.textSub,
+                marginBottom: 6,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}
+            >
+              Contraseña
             </Text>
-          </TouchableOpacity>
+            <View
+              style={{ position: "relative", marginBottom: error ? 10 : 20 }}
+            >
+              <Feather
+                name="key"
+                size={14}
+                color={focusField === "password" ? C.teal : C.textLight}
+                style={{ position: "absolute", left: 12, top: 13, zIndex: 1 }}
+              />
+              <TextInput
+                value={password}
+                onChangeText={(v) => {
+                  setPassword(v);
+                  setError("");
+                }}
+                placeholder="••••••••"
+                placeholderTextColor={C.textLight}
+                secureTextEntry={!showPass}
+                onFocus={() => setFocus("password")}
+                onBlur={() => setFocus(null)}
+                style={[
+                  inputStyle("password"),
+                  { paddingLeft: 36, paddingRight: 40 },
+                ]}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPass(!showPass)}
+                style={{ position: "absolute", right: 12, top: 12 }}
+              >
+                <Feather
+                  name={showPass ? "eye-off" : "eye"}
+                  size={15}
+                  color={C.textLight}
+                />
+              </TouchableOpacity>
+            </View>
 
-          <Text
-            style={{
-              textAlign: "center",
-              color: C.textLight,
-              fontSize: 12,
-              marginTop: 16,
-            }}
-          >
-            ¿Problemas?{" "}
-            <Text style={{ color: C.teal, fontWeight: "700" }}>
-              Contactar soporte
-            </Text>
-          </Text>
-        </View>
+            {/* Error */}
+            {!!displayError && (
+              <Row
+                style={{
+                  alignItems: "center",
+                  gap: 6,
+                  backgroundColor: C.redLight,
+                  borderRadius: 8,
+                  padding: 10,
+                  marginBottom: 14,
+                }}
+              >
+                <Feather name="alert-circle" size={13} color={C.red} />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: C.red,
+                    fontWeight: "600",
+                    flex: 1,
+                  }}
+                >
+                  {displayError}
+                </Text>
+              </Row>
+            )}
+
+            {/* Botón */}
+            <TouchableOpacity
+              onPress={handleLogin}
+              onMouseEnter={() => setHoverBtn(true)}
+              onMouseLeave={() => setHoverBtn(false)}
+              activeOpacity={0.88}
+              style={{
+                backgroundColor: hoverBtn ? "#0B8074" : C.teal,
+                padding: 14,
+                borderRadius: 11,
+                alignItems: "center",
+                flexDirection: "row",
+                justifyContent: "center",
+                gap: 8,
+                transform: [{ scale: hoverBtn ? 1.01 : 1 }],
+                shadowColor: C.teal,
+                shadowOpacity: hoverBtn ? 0.35 : 0.15,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 4 },
+              }}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" size="small" />
+              ) : (
+                <>
+                  <Text
+                    style={{ color: "white", fontWeight: "800", fontSize: 15 }}
+                  >
+                    Acceder a VinculaTec
+                  </Text>
+                  <Feather name="arrow-right" size={16} color="white" />
+                </>
+              )}
+            </TouchableOpacity>
+
+            {/* Soporte */}
+            <Row style={{ justifyContent: "center", marginTop: 18, gap: 4 }}>
+              <Text style={{ color: C.textLight, fontSize: 12 }}>
+                ¿Problemas para ingresar?
+              </Text>
+              <TouchableOpacity onPress={() => setSupport(true)}>
+                <Text
+                  style={{ color: C.teal, fontSize: 12, fontWeight: "700" }}
+                >
+                  Contactar soporte
+                </Text>
+              </TouchableOpacity>
+            </Row>
+          </View>
+        </Animated.View>
       </View>
+
+      {/* ── Modal Soporte ── */}
+      <Modal visible={showSupport} transparent animationType="fade">
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.45)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              width: 380,
+              backgroundColor: C.card,
+              borderRadius: 18,
+              padding: 28,
+              borderWidth: 1,
+              borderColor: C.border,
+            }}
+          >
+            <Row
+              style={{
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 20,
+              }}
+            >
+              <Row style={{ alignItems: "center", gap: 10 }}>
+                <View
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 11,
+                    backgroundColor: C.tealLight,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="headphones" size={18} color={C.teal} />
+                </View>
+                <Text
+                  style={{ fontSize: 17, fontWeight: "800", color: C.text }}
+                >
+                  Soporte Técnico
+                </Text>
+              </Row>
+              <TouchableOpacity onPress={() => setSupport(false)}>
+                <Feather name="x" size={20} color={C.textMuted} />
+              </TouchableOpacity>
+            </Row>
+            <Text
+              style={{
+                fontSize: 13,
+                color: C.textMuted,
+                marginBottom: 22,
+                lineHeight: 20,
+              }}
+            >
+              Si tienes problemas para acceder, comunícate con el equipo de
+              soporte del Instituto:
+            </Text>
+            {[
+              ["phone", "Teléfono", "+52 (229) 000-0000   Ext. 100"],
+              ["mail", "Correo", "soporte@itm.edu.mx"],
+              ["clock", "Horario", "Lun–Vie · 8:00 – 18:00 hrs"],
+            ].map(([icon, label, value]) => (
+              <Row
+                key={label}
+                style={{
+                  gap: 14,
+                  alignItems: "center",
+                  paddingVertical: 12,
+                  borderBottomWidth: 1,
+                  borderBottomColor: C.borderLight,
+                }}
+              >
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 9,
+                    backgroundColor: C.bg,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name={icon} size={16} color={C.teal} />
+                </View>
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: "700",
+                      color: C.textMuted,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {label}
+                  </Text>
+                  <Text
+                    style={{ fontSize: 13, fontWeight: "600", color: C.text }}
+                  >
+                    {value}
+                  </Text>
+                </View>
+              </Row>
+            ))}
+            <TouchableOpacity
+              onPress={() => setSupport(false)}
+              style={{
+                marginTop: 20,
+                backgroundColor: C.teal,
+                borderRadius: 10,
+                paddingVertical: 11,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "white", fontWeight: "700", fontSize: 14 }}>
+                Entendido
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
+// loginError sync handled via prop in handleLogin

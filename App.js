@@ -1,56 +1,57 @@
 import { useState } from "react";
+import LoginScreen   from "./src/shared/LoginScreen";
+import ResidenteApp  from "./src/roles/residente/ResidenteApp";
+import AsesorApp     from "./src/roles/asesor/AsesorApp";
+import JefeApp       from "./src/roles/jefe/JefeApp";
 
-// Login (compartido)
-import LoginScreen from "./src/shared/LoginScreen";
-
-// App de cada rol
-import ResidenteApp from "./src/roles/residente/ResidenteApp";
-import AsesorApp from "./src/roles/asesor/AsesorApp";
-import JefeApp from "./src/roles/jefe/JefeApp";
+// ─────────────────────────────────────────────────────────────────────────────
+// Tabla simulada de usuarios  (sustituir por fetch a Node/Express + MySQL)
+// Formato: { correo: { rol, nombre } }
+// ─────────────────────────────────────────────────────────────────────────────
+const USUARIOS_DB = {
+  "ana.garcia@itm.edu.mx":      { rol: "Residente",           nombre: "Ana García" },
+  "luis.hernandez@itm.edu.mx":  { rol: "Residente",           nombre: "Luis Hernández" },
+  "sofia.martinez@itm.edu.mx":  { rol: "Residente",           nombre: "Sofía Martínez" },
+  "marco.reyes@itm.edu.mx":     { rol: "Asesor",              nombre: "Dr. Marco Reyes" },
+  "laura.vega@itm.edu.mx":      { rol: "Asesor",              nombre: "Dra. Laura Vega" },
+  "director@itm.edu.mx":        { rol: "Jefe de Vinculación", nombre: "Ing. Carlos Mendoza" },
+};
 
 export default function App() {
   const [screen, setScreen] = useState("login");
-  const [loginRole, setLoginRole] = useState("residente");
-  const [role, setRole] = useState(null);
+  const [usuario, setUsuario] = useState(null);   // { rol, nombre }
+  const [loginError, setLoginError] = useState("");
 
-  const handleLogin = () => {
-    const map = {
-      residente: "Residente",
-      asesor: "Asesor",
-      jefe: "Jefe de Vinculación",
-    };
-    setRole(map[loginRole]);
+  // ── Lógica de login ─────────────────────────────────────────────────────────
+  // Aquí se reemplaza el lookup local por:
+  //   const res = await fetch("http://TU_IP:3001/api/auth/login", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ correo: email, password }),
+  //   });
+  //   const data = await res.json();
+  //   if (data.ok) { setUsuario(data.usuario); setScreen("app"); }
+  //   else { /* mostrar error */ }
+  const handleLogin = (email, _password) => {
+    const user = USUARIOS_DB[email.toLowerCase()];
+    if (!user) {
+      setLoginError("Correo no encontrado. Verifica tus datos o contacta soporte.");
+      return;
+    }
+    setLoginError("");
+    setUsuario(user);
     setScreen("app");
   };
 
-  const handleLogout = () => {
-    setRole(null);
-    setScreen("login");
-  };
+  const handleLogout = () => { setUsuario(null); setScreen("login"); };
 
-  // ── Login ────────────────────────────────────────────────────────────────────
   if (screen === "login") {
-    return (
-      <LoginScreen
-        loginRole={loginRole}
-        setLoginRole={setLoginRole}
-        onLogin={handleLogin}
-      />
-    );
+    return <LoginScreen onLogin={handleLogin} loginError={loginError} />;
   }
 
-  // ── App por rol ──────────────────────────────────────────────────────────────
-  if (role === "Residente") return <ResidenteApp onLogout={handleLogout} />;
-  if (role === "Asesor") return <AsesorApp onLogout={handleLogout} />;
-  if (role === "Jefe de Vinculación")
-    return <JefeApp onLogout={handleLogout} />;
+  if (usuario?.rol === "Residente")            return <ResidenteApp usuario={usuario} onLogout={handleLogout} />;
+  if (usuario?.rol === "Asesor")               return <AsesorApp    usuario={usuario} onLogout={handleLogout} />;
+  if (usuario?.rol === "Jefe de Vinculación")  return <JefeApp      usuario={usuario} onLogout={handleLogout} />;
 
-  // Fallback por si el rol no coincide
-  return (
-    <LoginScreen
-      loginRole={loginRole}
-      setLoginRole={setLoginRole}
-      onLogin={handleLogin}
-    />
-  );
+  return <LoginScreen onLogin={handleLogin} loginError={loginError} />;
 }

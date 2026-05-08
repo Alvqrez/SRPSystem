@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import { Row, Card, StatCard, Badge } from "../components";
+import { useNotificaciones } from "../context/NotificacionesContext";
 
 const NOTIFICATIONS = [
   {
@@ -87,31 +88,58 @@ const NOTIFICATIONS = [
 
 export default function Notificaciones() {
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
+  const { setUnreadCount } = useNotificaciones() || {};
 
   const unread = notifications.filter((n) => n.unread).length;
   const read = notifications.filter((n) => !n.unread).length;
 
   const markAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    setUnreadCount && setUnreadCount(0);
   };
 
   const markRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
-    );
+    setNotifications((prev) => {
+      const updated = prev.map((n) =>
+        n.id === id ? { ...n, unread: false } : n,
+      );
+      const newCount = updated.filter((n) => n.unread).length;
+      setUnreadCount && setUnreadCount(newCount);
+      return updated;
+    });
   };
 
   const dismiss = (id) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifications((prev) => {
+      const item = prev.find((n) => n.id === id);
+      const updated = prev.filter((n) => n.id !== id);
+      if (item?.unread)
+        setUnreadCount &&
+          setUnreadCount(updated.filter((n) => n.unread).length);
+      return updated;
+    });
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 24 }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: C.bg }}
+      contentContainerStyle={{ padding: 24 }}
+    >
       {/* Header */}
-      <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
+      <Row
+        style={{
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 22,
+        }}
+      >
         <View>
-          <Text style={{ fontSize: 22, fontWeight: "800", color: C.text }}>Notificaciones</Text>
-          <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>Centro de avisos y alertas</Text>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: C.text }}>
+            Notificaciones
+          </Text>
+          <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>
+            Centro de avisos y alertas
+          </Text>
         </View>
         <TouchableOpacity
           onPress={markAllRead}
@@ -128,7 +156,9 @@ export default function Notificaciones() {
           }}
         >
           <Feather name="check-square" size={13} color={C.textMuted} />
-          <Text style={{ fontSize: 12, color: C.textMuted, fontWeight: "600" }}>Marcar todo leído</Text>
+          <Text style={{ fontSize: 12, color: C.textMuted, fontWeight: "600" }}>
+            Marcar todo leído
+          </Text>
         </TouchableOpacity>
       </Row>
 
@@ -210,12 +240,22 @@ export default function Notificaciones() {
                     flexShrink: 0,
                   }}
                 >
-                  <Feather name={notif.icon} size={18} color={notif.iconColor} />
+                  <Feather
+                    name={notif.icon}
+                    size={18}
+                    color={notif.iconColor}
+                  />
                 </View>
 
                 {/* Content */}
                 <View style={{ flex: 1 }}>
-                  <Row style={{ justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                  <Row
+                    style={{
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      marginBottom: 4,
+                    }}
+                  >
                     <Row style={{ alignItems: "center", gap: 8, flex: 1 }}>
                       <Text
                         style={{
@@ -241,7 +281,11 @@ export default function Notificaciones() {
                       )}
                     </Row>
                     <Row style={{ gap: 6, marginLeft: 10 }}>
-                      <Badge text={notif.type} color={notif.typeColor} bg={notif.typeBg} />
+                      <Badge
+                        text={notif.type}
+                        color={notif.typeColor}
+                        bg={notif.typeBg}
+                      />
                     </Row>
                   </Row>
 
@@ -256,10 +300,17 @@ export default function Notificaciones() {
                     {notif.body}
                   </Text>
 
-                  <Row style={{ justifyContent: "space-between", alignItems: "center" }}>
+                  <Row
+                    style={{
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
                     <Row style={{ alignItems: "center", gap: 5 }}>
                       <Feather name="clock" size={11} color={C.textLight} />
-                      <Text style={{ fontSize: 11, color: C.textLight }}>{notif.time}</Text>
+                      <Text style={{ fontSize: 11, color: C.textLight }}>
+                        {notif.time}
+                      </Text>
                     </Row>
                     <Row style={{ gap: 8 }}>
                       {notif.unread && (
@@ -274,7 +325,15 @@ export default function Notificaciones() {
                             borderColor: C.tealLight,
                           }}
                         >
-                          <Text style={{ fontSize: 11, color: C.teal, fontWeight: "700" }}>Marcar leída</Text>
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              color: C.teal,
+                              fontWeight: "700",
+                            }}
+                          >
+                            Marcar leída
+                          </Text>
                         </TouchableOpacity>
                       )}
                       <TouchableOpacity
@@ -316,10 +375,19 @@ export default function Notificaciones() {
           >
             <Feather name="bell-off" size={26} color={C.green} />
           </View>
-          <Text style={{ fontSize: 16, fontWeight: "700", color: C.text, marginBottom: 6 }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "700",
+              color: C.text,
+              marginBottom: 6,
+            }}
+          >
             Sin notificaciones
           </Text>
-          <Text style={{ fontSize: 13, color: C.textMuted }}>Estás al día con todo</Text>
+          <Text style={{ fontSize: 13, color: C.textMuted }}>
+            Estás al día con todo
+          </Text>
         </View>
       )}
     </ScrollView>
