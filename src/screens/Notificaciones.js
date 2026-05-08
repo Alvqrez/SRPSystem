@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
@@ -87,19 +87,38 @@ const NOTIFICATIONS = [
 ];
 
 export default function Notificaciones() {
-  const [notifications, setNotifications] = useState(NOTIFICATIONS);
-  const { setUnreadCount } = useNotificaciones() || {};
+  const [localNotifications, setLocalNotifications] = useState(NOTIFICATIONS);
+  const {
+    notifications: contextNotifications,
+    setNotifications: setContextNotifications,
+    setUnreadCount,
+  } = useNotificaciones() || {};
+
+  useEffect(() => {
+    if (!contextNotifications && setContextNotifications) {
+      setContextNotifications(localNotifications);
+    }
+  }, [contextNotifications, localNotifications, setContextNotifications]);
+
+  const notifications = contextNotifications || localNotifications;
+  const setNotificationState = (updater) => {
+    if (setContextNotifications) {
+      setContextNotifications((prev) => updater(prev || localNotifications));
+      return;
+    }
+    setLocalNotifications(updater);
+  };
 
   const unread = notifications.filter((n) => n.unread).length;
   const read = notifications.filter((n) => !n.unread).length;
 
   const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    setNotificationState((prev) => prev.map((n) => ({ ...n, unread: false })));
     setUnreadCount && setUnreadCount(0);
   };
 
   const markRead = (id) => {
-    setNotifications((prev) => {
+    setNotificationState((prev) => {
       const updated = prev.map((n) =>
         n.id === id ? { ...n, unread: false } : n,
       );
@@ -110,7 +129,7 @@ export default function Notificaciones() {
   };
 
   const dismiss = (id) => {
-    setNotifications((prev) => {
+    setNotificationState((prev) => {
       const item = prev.find((n) => n.id === id);
       const updated = prev.filter((n) => n.id !== id);
       if (item?.unread)
@@ -157,7 +176,7 @@ export default function Notificaciones() {
         >
           <Feather name="check-square" size={13} color={C.textMuted} />
           <Text style={{ fontSize: 12, color: C.textMuted, fontWeight: "600" }}>
-            Marcar todo leído
+            Marcar todo como leído
           </Text>
         </TouchableOpacity>
       </Row>
@@ -332,7 +351,7 @@ export default function Notificaciones() {
                               fontWeight: "700",
                             }}
                           >
-                            Marcar leída
+                            Marcar como leído
                           </Text>
                         </TouchableOpacity>
                       )}
