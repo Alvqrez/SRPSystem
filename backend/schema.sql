@@ -1,5 +1,5 @@
-asesoresusuarios-- ============================================================
--- VinculaTec — Schema MySQL (versión mejorada 2026)
+-- ============================================================
+-- VinculaTec — Schema MySQL (corregido para seed.js)
 -- Ejecutar en MySQL Workbench como usuario root
 -- ============================================================
 
@@ -8,11 +8,8 @@ CREATE DATABASE vinculatec CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE vinculatec;
 
 -- ── Usuarios ────────────────────────────────────────────────
--- Tabla principal de identificación de usuarios
--- Se usa id como clave primaria pero NO auto incremental
--- El id debe ser asignado manualmente (ej. matrícula, RFC interno)
 CREATE TABLE IF NOT EXISTS usuarios (
-  id            VARCHAR(50) PRIMARY KEY, -- Identificador único manual
+  id            VARCHAR(50) PRIMARY KEY,  -- ID manual (string)
   nombre        VARCHAR(100) NOT NULL,
   apellidos     VARCHAR(100) NOT NULL,
   correo        VARCHAR(150) NOT NULL UNIQUE,
@@ -26,9 +23,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Empresas ────────────────────────────────────────────────
--- Registro de empresas con convenios
 CREATE TABLE IF NOT EXISTS empresas (
-  id                   VARCHAR(50) PRIMARY KEY, -- Identificador manual (ej. RFC)
+  id                   VARCHAR(50) PRIMARY KEY,  -- ID manual
   nombre               VARCHAR(150) NOT NULL,
   sector               VARCHAR(100),
   ciudad               VARCHAR(100),
@@ -39,13 +35,12 @@ CREATE TABLE IF NOT EXISTS empresas (
   contacto_telefono    VARCHAR(30),
   created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_estado (estado),
-  INDEX idx_convenio (convenio_vencimiento) -- mejora para consultas de vencimiento
+  INDEX idx_convenio (convenio_vencimiento)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Asesores ────────────────────────────────────────────────
--- Relación 1:1 con usuarios de rol asesor
 CREATE TABLE IF NOT EXISTS asesores (
-  id              VARCHAR(50) PRIMARY KEY, -- Identificador manual
+  id              VARCHAR(50) PRIMARY KEY,  -- ID manual
   usuario_id      VARCHAR(50) NOT NULL UNIQUE,
   departamento    VARCHAR(100),
   num_empleado    VARCHAR(30),
@@ -54,18 +49,16 @@ CREATE TABLE IF NOT EXISTS asesores (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Jefes de Vinculación ────────────────────────────────────
--- Relación 1:1 con usuarios de rol jefe
 CREATE TABLE IF NOT EXISTS jefes_vinculacion (
-  id          VARCHAR(50) PRIMARY KEY, -- Identificador manual
+  id          VARCHAR(50) PRIMARY KEY,  -- ID manual
   usuario_id  VARCHAR(50) NOT NULL UNIQUE,
   departamento VARCHAR(100),
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Residentes ──────────────────────────────────────────────
--- Relación 1:1 con usuarios de rol residente
 CREATE TABLE IF NOT EXISTS residentes (
-  id                VARCHAR(50) PRIMARY KEY, -- Identificador manual (ej. matrícula)
+  id                VARCHAR(50) PRIMARY KEY,  -- ID manual
   usuario_id        VARCHAR(50) NOT NULL UNIQUE,
   num_control       VARCHAR(20) UNIQUE,
   carrera           VARCHAR(100),
@@ -77,35 +70,17 @@ CREATE TABLE IF NOT EXISTS residentes (
   fecha_inicio      DATE,
   fecha_fin         DATE,
   estado            ENUM('activo','completado','baja') DEFAULT 'activo',
-  FOREIGN KEY (usuario_id)  REFERENCES usuarios(id)   ON DELETE CASCADE,
-  FOREIGN KEY (empresa_id)  REFERENCES empresas(id)   ON DELETE SET NULL,
-  FOREIGN KEY (asesor_id)   REFERENCES asesores(id)   ON DELETE SET NULL,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE SET NULL,
+  FOREIGN KEY (asesor_id)  REFERENCES asesores(id) ON DELETE SET NULL,
   INDEX idx_estado (estado),
   INDEX idx_asesor (asesor_id),
   INDEX idx_empresa (empresa_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ── Trigger mejorado ────────────────────────────────────────
--- Antes de actualizar un residente, si cumple las horas requeridas
--- y aún está activo, se cambia su estado a 'completado' automáticamente
-DROP TRIGGER IF EXISTS trg_residente_estado;
-
-DELIMITER //
-CREATE TRIGGER trg_residente_estado
-BEFORE UPDATE ON residentes
-FOR EACH ROW
-BEGIN
-  IF NEW.horas_completadas >= NEW.horas_requeridas AND NEW.estado = 'activo' THEN
-    SET NEW.estado = 'completado';
-  END IF;
-END;
-//
-DELIMITER ;
-
 -- ── Proyectos ───────────────────────────────────────────────
--- Proyectos vinculados a empresas, residentes y asesores
 CREATE TABLE IF NOT EXISTS proyectos (
-  id            VARCHAR(50) PRIMARY KEY, -- Identificador manual
+  id            VARCHAR(50) PRIMARY KEY,  -- ID manual
   titulo        VARCHAR(200) NOT NULL,
   descripcion   TEXT,
   empresa_id    VARCHAR(50),
@@ -123,9 +98,8 @@ CREATE TABLE IF NOT EXISTS proyectos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Reportes ────────────────────────────────────────────────
--- Reportes entregados por residentes
 CREATE TABLE IF NOT EXISTS reportes (
-  id            VARCHAR(50) PRIMARY KEY, -- Identificador manual
+  id            VARCHAR(50) PRIMARY KEY,  -- ID manual
   residente_id  VARCHAR(50) NOT NULL,
   tipo          ENUM('preliminar','parcial1','parcial2','parcial3','final') NOT NULL,
   fecha_limite  DATE,
@@ -134,35 +108,33 @@ CREATE TABLE IF NOT EXISTS reportes (
   calificacion  DECIMAL(5,2),
   feedback      TEXT,
   archivo_url   VARCHAR(500),
-  revisado_por  VARCHAR(50), -- mejora: quién evaluó
+  revisado_por  VARCHAR(50),
   created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (residente_id) REFERENCES residentes(id) ON DELETE CASCADE,
-  FOREIGN KEY (revisado_por) REFERENCES usuarios(id)   ON DELETE SET NULL,
+  FOREIGN KEY (revisado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
   INDEX idx_tipo (tipo),
   INDEX idx_estado (estado),
   INDEX idx_residente (residente_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Notificaciones ──────────────────────────────────────────
--- Mensajes y alertas para usuarios
 CREATE TABLE IF NOT EXISTS notificaciones (
-  id          VARCHAR(50) PRIMARY KEY, -- Identificador manual
+  id          VARCHAR(50) PRIMARY KEY,  -- ID manual
   usuario_id  VARCHAR(50) NOT NULL,
   tipo        ENUM('Reporte','Aprobación','Cita','Alerta','Mensaje','Logro') NOT NULL,
   titulo      VARCHAR(200) NOT NULL,
   cuerpo      TEXT,
   leida       BOOLEAN      DEFAULT FALSE,
   icono       VARCHAR(50)  DEFAULT 'bell',
-  url_accion  VARCHAR(300), -- mejora: redirección al módulo correspondiente
+  url_accion  VARCHAR(300),
   created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
   INDEX idx_usuario_leida (usuario_id, leida)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Citas / Calendario ──────────────────────────────────────
--- Agenda de reuniones entre usuarios
 CREATE TABLE IF NOT EXISTS citas (
-  id              VARCHAR(50) PRIMARY KEY, -- Identificador manual
+  id              VARCHAR(50) PRIMARY KEY,  -- ID manual
   solicitante_id  VARCHAR(50) NOT NULL,
   participante_id VARCHAR(50) NOT NULL,
   tipo            ENUM('Asesoría','Revisión','Evaluación','Entrega','Otro') DEFAULT 'Asesoría',
@@ -171,7 +143,7 @@ CREATE TABLE IF NOT EXISTS citas (
   fecha_hora      DATETIME     NOT NULL,
   lugar           VARCHAR(150),
   estado          ENUM('Pendiente','Confirmada','Cancelada') DEFAULT 'Pendiente',
-  external_id     VARCHAR(100), -- mejora: integración con Google/Outlook
+  external_id     VARCHAR(100),
   created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (solicitante_id)  REFERENCES usuarios(id) ON DELETE CASCADE,
   FOREIGN KEY (participante_id) REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -182,14 +154,16 @@ CREATE TABLE IF NOT EXISTS citas (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Fuentes de Información ──────────────────────────────────
--- Validación de fuentes por jefes
+-- (corregida: ahora incluye fecha_revision y observaciones)
 CREATE TABLE IF NOT EXISTS fuentes_informacion (
-  id            VARCHAR(50) PRIMARY KEY, -- Identificador manual
-  residente_id  VARCHAR(50) NOT NULL,
-  tipo          ENUM('propia','banco','empresa') NOT NULL,
-  descripcion   VARCHAR(300),
-  estado        ENUM('Pendiente','Validada','Rechazada') DEFAULT 'Pendiente',
-  revisado_por  VARCHAR(50),
+  id              VARCHAR(50) PRIMARY KEY,  -- ID manual
+  residente_id    VARCHAR(50) NOT NULL,
+  tipo            ENUM('propia','banco','empresa') NOT NULL,
+  descripcion     VARCHAR(300),
+  estado          ENUM('Pendiente','Validada','Rechazada') DEFAULT 'Pendiente',
+  revisado_por    VARCHAR(50),
+  fecha_revision  DATE,                     -- <-- añadido
+  observaciones   TEXT,                     -- <-- añadido
   FOREIGN KEY (residente_id) REFERENCES residentes(id) ON DELETE CASCADE,
   FOREIGN KEY (revisado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
   INDEX idx_tipo (tipo),
