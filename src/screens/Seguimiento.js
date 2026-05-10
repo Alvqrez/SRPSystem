@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  Alert,
-  Modal,
-  Pressable,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import { Alert, Modal, Pressable, View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import { Row, Card, StatCard, Badge, ProgressBar } from "../components";
@@ -144,10 +136,7 @@ export default function Seguimiento() {
     if (globalThis?.window?.open) {
       const win = globalThis.window.open("", "_blank");
       if (!win) {
-        Alert.alert(
-          "Exportar",
-          "Permite ventanas emergentes para generar el PDF.",
-        );
+        Alert.alert("Exportar", "Permite ventanas emergentes para generar el PDF.");
         return;
       }
       win.document.write(html);
@@ -157,10 +146,7 @@ export default function Seguimiento() {
       return;
     }
 
-    Alert.alert(
-      "Exportar",
-      "La exportacion a PDF esta disponible en la version web.",
-    );
+    Alert.alert("Exportar", "La exportacion a PDF esta disponible en la version web.");
   };
 
   const deliverReport = (id) => {
@@ -177,32 +163,16 @@ export default function Seguimiento() {
           : report,
       ),
     );
-    Alert.alert(
-      "Reporte entregado",
-      "El reporte se marco como enviado y queda en revision.",
-    );
+    Alert.alert("Reporte entregado", "El reporte se marco como enviado y queda en revision.");
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: C.bg }}
-      contentContainerStyle={{ padding: 24 }}
-    >
+    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 24 }}>
       {/* Header */}
-      <Row
-        style={{
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 22,
-        }}
-      >
+      <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
         <View>
-          <Text style={{ fontSize: 22, fontWeight: "800", color: C.text }}>
-            Seguimiento de Reportes
-          </Text>
-          <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>
-            Residencia Industrial · 2024-B
-          </Text>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: C.text }}>Seguimiento de Reportes</Text>
+          <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>Residencia Industrial · 2024-B</Text>
         </View>
         <TouchableOpacity
           onPress={exportReports}
@@ -219,9 +189,7 @@ export default function Seguimiento() {
           }}
         >
           <Feather name="download" size={13} color={C.teal} />
-          <Text style={{ color: C.teal, fontWeight: "700", fontSize: 13 }}>
-            Exportar
-          </Text>
+          <Text style={{ color: C.teal, fontWeight: "700", fontSize: 13 }}>Exportar</Text>
         </TouchableOpacity>
       </Row>
 
@@ -265,40 +233,19 @@ export default function Seguimiento() {
 
       {/* Progress Overview */}
       <Card style={{ marginBottom: 18 }}>
-        <Row
-          style={{
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 14,
-          }}
-        >
-          <Text style={{ fontSize: 14, fontWeight: "800", color: C.text }}>
-            Progreso General
-          </Text>
-          <Text style={{ fontSize: 13, fontWeight: "700", color: C.teal }}>
-            67%
-          </Text>
+        <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <Text style={{ fontSize: 14, fontWeight: "800", color: C.text }}>Progreso General</Text>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: C.teal }}>67%</Text>
         </Row>
         <ProgressBar pct={67} color={C.teal} />
         <Row style={{ justifyContent: "space-between", marginTop: 10 }}>
-          <Text style={{ fontSize: 11, color: C.textMuted }}>
-            2 de 3 reportes aprobados
-          </Text>
-          <Text style={{ fontSize: 11, color: C.textMuted }}>
-            Reporte Final pendiente
-          </Text>
+          <Text style={{ fontSize: 11, color: C.textMuted }}>2 de 3 reportes aprobados</Text>
+          <Text style={{ fontSize: 11, color: C.textMuted }}>Reporte Final pendiente</Text>
         </Row>
       </Card>
 
       {/* Report Cards */}
-      <Text
-        style={{
-          fontSize: 14,
-          fontWeight: "800",
-          color: C.text,
-          marginBottom: 12,
-        }}
-      >
+      <Text style={{ fontSize: 14, fontWeight: "800", color: C.text, marginBottom: 12 }}>
         Historial de Reportes
       </Text>
 
@@ -313,12 +260,7 @@ export default function Seguimiento() {
                 activeOpacity={0.85}
                 style={{ padding: 18 }}
               >
-                <Row
-                  style={{
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                  }}
-                >
+                <Row style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
                   <Row style={{ flex: 1, gap: 12, alignItems: "flex-start" }}>
                     {/* Number bubble */}
                     <View
@@ -330,8 +272,8 @@ export default function Seguimiento() {
                           report.status === "Aprobado"
                             ? C.greenLight
                             : report.status === "En Revisión"
-                              ? C.amberLight
-                              : C.bg,
+                            ? C.amberLight
+                            : C.bg,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
@@ -344,44 +286,20 @@ export default function Seguimiento() {
                             report.status === "Aprobado"
                               ? C.green
                               : report.status === "En Revisión"
-                                ? C.amber
-                                : C.textMuted,
+                              ? C.amber
+                              : C.textMuted,
                         }}
                       >
                         {report.id}
                       </Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          fontWeight: "700",
-                          color: C.text,
-                        }}
-                      >
-                        {report.title}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          color: C.textMuted,
-                          marginTop: 2,
-                        }}
-                      >
-                        {report.subtitle}
-                      </Text>
+                      <Text style={{ fontSize: 14, fontWeight: "700", color: C.text }}>{report.title}</Text>
+                      <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>{report.subtitle}</Text>
                       {report.submitted && (
-                        <Row
-                          style={{ alignItems: "center", gap: 5, marginTop: 5 }}
-                        >
-                          <Feather
-                            name="calendar"
-                            size={11}
-                            color={C.textLight}
-                          />
-                          <Text style={{ fontSize: 11, color: C.textLight }}>
-                            Enviado: {report.submitted}
-                          </Text>
+                        <Row style={{ alignItems: "center", gap: 5, marginTop: 5 }}>
+                          <Feather name="calendar" size={11} color={C.textLight} />
+                          <Text style={{ fontSize: 11, color: C.textLight }}>Enviado: {report.submitted}</Text>
                         </Row>
                       )}
                     </View>
@@ -393,8 +311,7 @@ export default function Seguimiento() {
                           paddingHorizontal: 10,
                           paddingVertical: 4,
                           borderRadius: 8,
-                          backgroundColor:
-                            report.score >= 90 ? C.greenLight : C.amberLight,
+                          backgroundColor: report.score >= 90 ? C.greenLight : C.amberLight,
                         }}
                       >
                         <Text
@@ -408,11 +325,7 @@ export default function Seguimiento() {
                         </Text>
                       </View>
                     )}
-                    <Badge
-                      text={report.status}
-                      color={report.statusColor}
-                      bg={report.statusBg}
-                    />
+                    <Badge text={report.status} color={report.statusColor} bg={report.statusBg} />
                     <Feather
                       name={isOpen ? "chevron-up" : "chevron-down"}
                       size={16}
@@ -433,14 +346,7 @@ export default function Seguimiento() {
                   }}
                 >
                   {/* Checklist */}
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: "700",
-                      color: C.textSub,
-                      marginBottom: 10,
-                    }}
-                  >
+                  <Text style={{ fontSize: 12, fontWeight: "700", color: C.textSub, marginBottom: 10 }}>
                     Secciones del reporte
                   </Text>
                   <View style={{ gap: 7, marginBottom: 14 }}>
@@ -458,9 +364,7 @@ export default function Seguimiento() {
                             justifyContent: "center",
                           }}
                         >
-                          {item.done && (
-                            <Feather name="check" size={11} color="white" />
-                          )}
+                          {item.done && <Feather name="check" size={11} color="white" />}
                         </View>
                         <Text
                           style={{
@@ -486,48 +390,20 @@ export default function Seguimiento() {
                         padding: 13,
                       }}
                     >
-                      <Row
-                        style={{
-                          alignItems: "center",
-                          gap: 6,
-                          marginBottom: 6,
-                        }}
-                      >
-                        <Feather
-                          name="message-square"
-                          size={13}
-                          color={C.teal}
-                        />
-                        <Text
-                          style={{
-                            fontSize: 12,
-                            fontWeight: "700",
-                            color: C.teal,
-                          }}
-                        >
+                      <Row style={{ alignItems: "center", gap: 6, marginBottom: 6 }}>
+                        <Feather name="message-square" size={13} color={C.teal} />
+                        <Text style={{ fontSize: 12, fontWeight: "700", color: C.teal }}>
                           Retroalimentación · {report.reviewer}
                         </Text>
                       </Row>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          color: C.textSub,
-                          lineHeight: 18,
-                        }}
-                      >
+                      <Text style={{ fontSize: 12, color: C.textSub, lineHeight: 18 }}>
                         {report.feedback}
                       </Text>
                     </View>
                   )}
 
                   {/* Action buttons */}
-                  <Row
-                    style={{
-                      gap: 8,
-                      marginTop: 14,
-                      justifyContent: "flex-end",
-                    }}
-                  >
+                  <Row style={{ gap: 8, marginTop: 14, justifyContent: "flex-end" }}>
                     <TouchableOpacity
                       onPress={() => setViewingReport(report)}
                       style={{
@@ -543,15 +419,7 @@ export default function Seguimiento() {
                       }}
                     >
                       <Feather name="eye" size={12} color={C.textMuted} />
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          color: C.textMuted,
-                          fontWeight: "600",
-                        }}
-                      >
-                        Ver reporte
-                      </Text>
+                      <Text style={{ fontSize: 12, color: C.textMuted, fontWeight: "600" }}>Ver reporte</Text>
                     </TouchableOpacity>
                     {report.status === "Pendiente" && (
                       <TouchableOpacity
@@ -567,15 +435,7 @@ export default function Seguimiento() {
                         }}
                       >
                         <Feather name="upload" size={12} color="white" />
-                        <Text
-                          style={{
-                            fontSize: 12,
-                            color: "white",
-                            fontWeight: "700",
-                          }}
-                        >
-                          Entregar
-                        </Text>
+                        <Text style={{ fontSize: 12, color: "white", fontWeight: "700" }}>Entregar</Text>
                       </TouchableOpacity>
                     )}
                   </Row>
@@ -611,47 +471,26 @@ export default function Seguimiento() {
           >
             {viewingReport && (
               <>
-                <Row
-                  style={{
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 14,
-                  }}
-                >
-                  <Text
-                    style={{ fontSize: 18, fontWeight: "800", color: C.text }}
-                  >
+                <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                  <Text style={{ fontSize: 18, fontWeight: "800", color: C.text }}>
                     {viewingReport.title}
                   </Text>
                   <TouchableOpacity onPress={() => setViewingReport(null)}>
                     <Feather name="x" size={20} color={C.textMuted} />
                   </TouchableOpacity>
                 </Row>
-                <Text
-                  style={{ fontSize: 13, color: C.textMuted, marginBottom: 12 }}
-                >
+                <Text style={{ fontSize: 13, color: C.textMuted, marginBottom: 12 }}>
                   {viewingReport.subtitle}
                 </Text>
                 <Row style={{ gap: 8, marginBottom: 14 }}>
-                  <Badge
-                    text={viewingReport.status}
-                    color={viewingReport.statusColor}
-                    bg={viewingReport.statusBg}
-                  />
+                  <Badge text={viewingReport.status} color={viewingReport.statusColor} bg={viewingReport.statusBg} />
                   <Badge
                     text={`Calificacion: ${viewingReport.score ?? "Pendiente"}`}
                     color={viewingReport.score ? C.green : C.textMuted}
                     bg={viewingReport.score ? C.greenLight : C.bg}
                   />
                 </Row>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: "700",
-                    color: C.textSub,
-                    marginBottom: 8,
-                  }}
-                >
+                <Text style={{ fontSize: 13, fontWeight: "700", color: C.textSub, marginBottom: 8 }}>
                   Secciones
                 </Text>
                 <View style={{ gap: 6, marginBottom: 14 }}>
@@ -662,27 +501,15 @@ export default function Seguimiento() {
                         size={14}
                         color={item.done ? C.green : C.textLight}
                       />
-                      <Text style={{ fontSize: 12, color: C.textSub }}>
-                        {item.label}
-                      </Text>
+                      <Text style={{ fontSize: 12, color: C.textSub }}>{item.label}</Text>
                     </Row>
                   ))}
                 </View>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: "700",
-                    color: C.textSub,
-                    marginBottom: 8,
-                  }}
-                >
+                <Text style={{ fontSize: 13, fontWeight: "700", color: C.textSub, marginBottom: 8 }}>
                   Retroalimentacion
                 </Text>
-                <Text
-                  style={{ fontSize: 12, color: C.textMuted, lineHeight: 18 }}
-                >
-                  {viewingReport.feedback ||
-                    "Este reporte todavia no tiene retroalimentacion."}
+                <Text style={{ fontSize: 12, color: C.textMuted, lineHeight: 18 }}>
+                  {viewingReport.feedback || "Este reporte todavia no tiene retroalimentacion."}
                 </Text>
               </>
             )}

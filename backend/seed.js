@@ -31,51 +31,80 @@ const PASSWORD_PLAIN = "vinculatec123";
 
 const USUARIOS = [
   {
+<<<<<<< HEAD
+=======
     id: "1",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     nombre: "Ana",
     apellidos: "García Mendoza",
     correo: "ana.garcia@itm.edu.mx",
     rol: "residente",
   },
   {
+<<<<<<< HEAD
+=======
     id: "2",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     nombre: "Luis",
     apellidos: "Hernández Ruiz",
     correo: "luis.hernandez@itm.edu.mx",
     rol: "residente",
   },
   {
+<<<<<<< HEAD
+=======
     id: "3",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     nombre: "Sofía",
     apellidos: "Martínez López",
     correo: "sofia.martinez@itm.edu.mx",
     rol: "residente",
   },
   {
+<<<<<<< HEAD
+    nombre: "Pedro",
+    apellidos: "Ramírez Torres",
+=======
     id: "4",
     nombre: "Pedro",
     apellidos: "Ramírez Gómez",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     correo: "pedro.ramirez@itm.edu.mx",
     rol: "residente",
   },
   {
+<<<<<<< HEAD
+    nombre: "Marco",
+    apellidos: "Reyes Fuentes",
+=======
     id: "5",
     nombre: "Marco",
     apellidos: "Reyes Hernández",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     correo: "marco.reyes@itm.edu.mx",
     rol: "asesor",
   },
   {
+<<<<<<< HEAD
+    nombre: "Laura",
+    apellidos: "Vega Sánchez",
+=======
     id: "6",
     nombre: "Laura",
     apellidos: "Vega Jiménez",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     correo: "laura.vega@itm.edu.mx",
     rol: "asesor",
   },
   {
+<<<<<<< HEAD
+    nombre: "Carlos",
+    apellidos: "Mendoza Díaz",
+=======
     id: "7",
     nombre: "Carlos",
     apellidos: "Mendoza Pérez",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     correo: "director@itm.edu.mx",
     rol: "jefe",
   },

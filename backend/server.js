@@ -1,10 +1,10 @@
 const express = require("express");
-const cors    = require("cors");
+const cors = require("cors");
 require("dotenv").config();
 
 const authRoutes = require("./routes/auth");
 
-const app  = express();
+const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
@@ -14,7 +14,9 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 
 // Health check
-app.get("/api/health", (_, res) => res.json({ ok: true, mensaje: "VinculaTec API corriendo 🚀" }));
+app.get("/api/health", (_, res) =>
+  res.json({ ok: true, mensaje: "VinculaTec API corriendo 🚀" }),
+);
 
 // ── Inicio ───────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
