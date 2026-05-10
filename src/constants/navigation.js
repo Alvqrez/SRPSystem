@@ -5,7 +5,11 @@ export const NAV = [
   { id: "seguimiento", label: "Seguimiento", icon: "file-text" },
   { id: "reporte-preliminar", label: "Reporte Preliminar", icon: "edit" },
   { id: "reporte-final", label: "Reporte Final", icon: "book-open" },
-  { id: "validacion-fuentes", label: "Validación Fuentes", icon: "check-square" },
+  {
+    id: "validacion-fuentes",
+    label: "Validación Fuentes",
+    icon: "check-square",
+  },
   { id: "notificaciones", label: "Notificaciones", icon: "bell" },
   { id: "calendario", label: "Calendario", icon: "calendar" },
 ];
