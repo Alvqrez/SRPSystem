@@ -1,4 +1,4 @@
--- ============================================================
+asesoresusuarios-- ============================================================
 -- VinculaTec — Schema MySQL (versión mejorada 2026)
 -- Ejecutar en MySQL Workbench como usuario root
 -- ============================================================
@@ -11,7 +11,7 @@ USE vinculatec;
 -- Tabla principal de identificación de usuarios
 -- Se usa id como clave primaria pero NO auto incremental
 -- El id debe ser asignado manualmente (ej. matrícula, RFC interno)
-CREATE TABLE IF NOT EXISTS asesoresusuarios (
+CREATE TABLE IF NOT EXISTS susuarios (
   id            VARCHAR(50) PRIMARY KEY, -- Identificador único manual
   nombre        VARCHAR(100) NOT NULL,
   apellidos     VARCHAR(100) NOT NULL,
