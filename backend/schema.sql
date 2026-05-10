@@ -11,7 +11,7 @@ USE vinculatec;
 -- Tabla principal de identificación de usuarios
 -- Se usa id como clave primaria pero NO auto incremental
 -- El id debe ser asignado manualmente (ej. matrícula, RFC interno)
-CREATE TABLE IF NOT EXISTS susuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
   id            VARCHAR(50) PRIMARY KEY, -- Identificador único manual
   nombre        VARCHAR(100) NOT NULL,
   apellidos     VARCHAR(100) NOT NULL,
