@@ -31,47 +31,20 @@ const PASSWORD_PLAIN = "vinculatec123";
 
 const USUARIOS = [
   {
+    id: "RES-001", // <--- Agrega un ID único manual
     nombre: "Ana",
     apellidos: "García Mendoza",
     correo: "ana.garcia@itm.edu.mx",
     rol: "residente",
   },
   {
+    id: "RES-002", // <--- ID diferente para el siguiente
     nombre: "Luis",
     apellidos: "Hernández Ruiz",
     correo: "luis.hernandez@itm.edu.mx",
     rol: "residente",
   },
-  {
-    nombre: "Sofía",
-    apellidos: "Martínez López",
-    correo: "sofia.martinez@itm.edu.mx",
-    rol: "residente",
-  },
-  {
-    nombre: "Pedro",
-    apellidos: "Ramírez Castillo",
-    correo: "pedro.ramirez@itm.edu.mx",
-    rol: "residente",
-  },
-  {
-    nombre: "Marco",
-    apellidos: "Reyes Torres",
-    correo: "marco.reyes@itm.edu.mx",
-    rol: "asesor",
-  },
-  {
-    nombre: "Laura",
-    apellidos: "Vega Salinas",
-    correo: "laura.vega@itm.edu.mx",
-    rol: "asesor",
-  },
-  {
-    nombre: "Carlos",
-    apellidos: "Mendoza Ibarra",
-    correo: "director@itm.edu.mx",
-    rol: "jefe",
-  },
+  // Repite lo mismo para todos los usuarios en la lista...
 ];
 
 const EMPRESAS = [
