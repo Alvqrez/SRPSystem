@@ -1,5 +1,9 @@
 -- ============================================================
+<<<<<<< HEAD
 -- VinculaTec — Schema MySQL (versión mejorada 2026)
+=======
+-- VinculaTec — Schema MySQL (corregido para seed.js)
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
 -- Ejecutar en MySQL Workbench como usuario root
 -- ============================================================
 
@@ -9,7 +13,11 @@ USE vinculatec;
 
 -- ── Usuarios ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS usuarios (
+<<<<<<< HEAD
   id            INT          PRIMARY KEY AUTO_INCREMENT,
+=======
+  id            VARCHAR(50) PRIMARY KEY,  -- ID manual (string)
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   nombre        VARCHAR(100) NOT NULL,
   apellidos     VARCHAR(100) NOT NULL,
   correo        VARCHAR(150) NOT NULL UNIQUE,
@@ -24,7 +32,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
 
 -- ── Empresas ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS empresas (
+<<<<<<< HEAD
   id                   INT          PRIMARY KEY AUTO_INCREMENT,
+=======
+  id                   VARCHAR(50) PRIMARY KEY,  -- ID manual
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   nombre               VARCHAR(150) NOT NULL,
   sector               VARCHAR(100),
   ciudad               VARCHAR(100),
@@ -40,8 +52,13 @@ CREATE TABLE IF NOT EXISTS empresas (
 
 -- ── Asesores ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS asesores (
+<<<<<<< HEAD
   id              INT          PRIMARY KEY AUTO_INCREMENT,
   usuario_id      INT          NOT NULL UNIQUE,
+=======
+  id              VARCHAR(50) PRIMARY KEY,  -- ID manual
+  usuario_id      VARCHAR(50) NOT NULL UNIQUE,
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   departamento    VARCHAR(100),
   num_empleado    VARCHAR(30),
   max_residentes  INT DEFAULT 10,
@@ -50,17 +67,28 @@ CREATE TABLE IF NOT EXISTS asesores (
 
 -- ── Jefes de Vinculación ────────────────────────────────────
 CREATE TABLE IF NOT EXISTS jefes_vinculacion (
+<<<<<<< HEAD
   id           INT          PRIMARY KEY AUTO_INCREMENT,
   usuario_id   INT          NOT NULL UNIQUE,
+=======
+  id          VARCHAR(50) PRIMARY KEY,  -- ID manual
+  usuario_id  VARCHAR(50) NOT NULL UNIQUE,
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   departamento VARCHAR(100),
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Residentes ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS residentes (
+<<<<<<< HEAD
   id                INT          PRIMARY KEY AUTO_INCREMENT,
   usuario_id        INT          NOT NULL UNIQUE,
   num_control       VARCHAR(20)  UNIQUE,
+=======
+  id                VARCHAR(50) PRIMARY KEY,  -- ID manual
+  usuario_id        VARCHAR(50) NOT NULL UNIQUE,
+  num_control       VARCHAR(20) UNIQUE,
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   carrera           VARCHAR(100),
   semestre          INT,
   empresa_id        INT,
@@ -70,14 +98,15 @@ CREATE TABLE IF NOT EXISTS residentes (
   fecha_inicio      DATE,
   fecha_fin         DATE,
   estado            ENUM('activo','completado','baja') DEFAULT 'activo',
-  FOREIGN KEY (usuario_id)  REFERENCES usuarios(id)   ON DELETE CASCADE,
-  FOREIGN KEY (empresa_id)  REFERENCES empresas(id)   ON DELETE SET NULL,
-  FOREIGN KEY (asesor_id)   REFERENCES asesores(id)   ON DELETE SET NULL,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE SET NULL,
+  FOREIGN KEY (asesor_id)  REFERENCES asesores(id) ON DELETE SET NULL,
   INDEX idx_estado (estado),
   INDEX idx_asesor (asesor_id),
   INDEX idx_empresa (empresa_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+<<<<<<< HEAD
 -- ── Trigger ─────────────────────────────────────────────────
 DROP TRIGGER IF EXISTS trg_residente_estado;
 
@@ -96,6 +125,11 @@ DELIMITER ;
 -- ── Proyectos ───────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS proyectos (
   id            INT          PRIMARY KEY AUTO_INCREMENT,
+=======
+-- ── Proyectos ───────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS proyectos (
+  id            VARCHAR(50) PRIMARY KEY,  -- ID manual
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   titulo        VARCHAR(200) NOT NULL,
   descripcion   TEXT,
   empresa_id    INT,
@@ -114,8 +148,13 @@ CREATE TABLE IF NOT EXISTS proyectos (
 
 -- ── Reportes ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS reportes (
+<<<<<<< HEAD
   id            INT          PRIMARY KEY AUTO_INCREMENT,
   residente_id  INT          NOT NULL,
+=======
+  id            VARCHAR(50) PRIMARY KEY,  -- ID manual
+  residente_id  VARCHAR(50) NOT NULL,
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   tipo          ENUM('preliminar','parcial1','parcial2','parcial3','final') NOT NULL,
   fecha_limite  DATE,
   fecha_entrega DATE,
@@ -123,10 +162,14 @@ CREATE TABLE IF NOT EXISTS reportes (
   calificacion  DECIMAL(5,2),
   feedback      TEXT,
   archivo_url   VARCHAR(500),
+<<<<<<< HEAD
   revisado_por  INT,
+=======
+  revisado_por  VARCHAR(50),
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (residente_id) REFERENCES residentes(id) ON DELETE CASCADE,
-  FOREIGN KEY (revisado_por) REFERENCES usuarios(id)   ON DELETE SET NULL,
+  FOREIGN KEY (revisado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
   INDEX idx_tipo (tipo),
   INDEX idx_estado (estado),
   INDEX idx_residente (residente_id)
@@ -134,8 +177,13 @@ CREATE TABLE IF NOT EXISTS reportes (
 
 -- ── Notificaciones ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS notificaciones (
+<<<<<<< HEAD
   id          INT          PRIMARY KEY AUTO_INCREMENT,
   usuario_id  INT          NOT NULL,
+=======
+  id          VARCHAR(50) PRIMARY KEY,  -- ID manual
+  usuario_id  VARCHAR(50) NOT NULL,
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   tipo        ENUM('Reporte','Aprobación','Cita','Alerta','Mensaje','Logro') NOT NULL,
   titulo      VARCHAR(200) NOT NULL,
   cuerpo      TEXT,
@@ -149,9 +197,15 @@ CREATE TABLE IF NOT EXISTS notificaciones (
 
 -- ── Citas / Calendario ──────────────────────────────────────
 CREATE TABLE IF NOT EXISTS citas (
+<<<<<<< HEAD
   id              INT          PRIMARY KEY AUTO_INCREMENT,
   solicitante_id  INT          NOT NULL,
   participante_id INT          NOT NULL,
+=======
+  id              VARCHAR(50) PRIMARY KEY,  -- ID manual
+  solicitante_id  VARCHAR(50) NOT NULL,
+  participante_id VARCHAR(50) NOT NULL,
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   tipo            ENUM('Asesoría','Revisión','Evaluación','Entrega','Otro') DEFAULT 'Asesoría',
   motivo          VARCHAR(200),
   notas           TEXT,
@@ -169,6 +223,7 @@ CREATE TABLE IF NOT EXISTS citas (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Fuentes de Información ──────────────────────────────────
+<<<<<<< HEAD
 CREATE TABLE IF NOT EXISTS fuentes_informacion (
   id            INT          PRIMARY KEY AUTO_INCREMENT,
   residente_id  INT          NOT NULL,
@@ -178,6 +233,18 @@ CREATE TABLE IF NOT EXISTS fuentes_informacion (
   revisado_por  INT,
   fecha_revision DATE,
   observaciones  TEXT,
+=======
+-- (corregida: ahora incluye fecha_revision y observaciones)
+CREATE TABLE IF NOT EXISTS fuentes_informacion (
+  id              VARCHAR(50) PRIMARY KEY,  -- ID manual
+  residente_id    VARCHAR(50) NOT NULL,
+  tipo            ENUM('propia','banco','empresa') NOT NULL,
+  descripcion     VARCHAR(300),
+  estado          ENUM('Pendiente','Validada','Rechazada') DEFAULT 'Pendiente',
+  revisado_por    VARCHAR(50),
+  fecha_revision  DATE,                     -- <-- añadido
+  observaciones   TEXT,                     -- <-- añadido
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
   FOREIGN KEY (residente_id) REFERENCES residentes(id) ON DELETE CASCADE,
   FOREIGN KEY (revisado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
   INDEX idx_tipo (tipo),

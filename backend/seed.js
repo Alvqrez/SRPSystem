@@ -31,44 +31,80 @@ const PASSWORD_PLAIN = "vinculatec123";
 
 const USUARIOS = [
   {
+<<<<<<< HEAD
+=======
+    id: "1",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     nombre: "Ana",
     apellidos: "García Mendoza",
     correo: "ana.garcia@itm.edu.mx",
     rol: "residente",
   },
   {
+<<<<<<< HEAD
+=======
+    id: "2",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     nombre: "Luis",
     apellidos: "Hernández Ruiz",
     correo: "luis.hernandez@itm.edu.mx",
     rol: "residente",
   },
   {
+<<<<<<< HEAD
+=======
+    id: "3",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     nombre: "Sofía",
     apellidos: "Martínez López",
     correo: "sofia.martinez@itm.edu.mx",
     rol: "residente",
   },
   {
+<<<<<<< HEAD
     nombre: "Pedro",
     apellidos: "Ramírez Torres",
+=======
+    id: "4",
+    nombre: "Pedro",
+    apellidos: "Ramírez Gómez",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     correo: "pedro.ramirez@itm.edu.mx",
     rol: "residente",
   },
   {
+<<<<<<< HEAD
     nombre: "Marco",
     apellidos: "Reyes Fuentes",
+=======
+    id: "5",
+    nombre: "Marco",
+    apellidos: "Reyes Hernández",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     correo: "marco.reyes@itm.edu.mx",
     rol: "asesor",
   },
   {
+<<<<<<< HEAD
     nombre: "Laura",
     apellidos: "Vega Sánchez",
+=======
+    id: "6",
+    nombre: "Laura",
+    apellidos: "Vega Jiménez",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     correo: "laura.vega@itm.edu.mx",
     rol: "asesor",
   },
   {
+<<<<<<< HEAD
     nombre: "Carlos",
     apellidos: "Mendoza Díaz",
+=======
+    id: "7",
+    nombre: "Carlos",
+    apellidos: "Mendoza Pérez",
+>>>>>>> 5312c4dabf73826066478cc3d6b170c4202bf54d
     correo: "director@itm.edu.mx",
     rol: "jefe",
   },
@@ -76,6 +112,7 @@ const USUARIOS = [
 
 const EMPRESAS = [
   {
+    id: "EMP-1",
     nombre: "SoftSolutions SA",
     sector: "Tecnología",
     ciudad: "Monterrey",
@@ -86,6 +123,7 @@ const EMPRESAS = [
     contacto_telefono: "8112345678",
   },
   {
+    id: "EMP-2",
     nombre: "DataCore MX",
     sector: "Datos & IA",
     ciudad: "Ciudad de México",
@@ -96,6 +134,7 @@ const EMPRESAS = [
     contacto_telefono: "5512345678",
   },
   {
+    id: "EMP-3",
     nombre: "InnovaLogística",
     sector: "Logística",
     ciudad: "Guadalajara",
@@ -106,6 +145,7 @@ const EMPRESAS = [
     contacto_telefono: "3312345678",
   },
   {
+    id: "EMP-4",
     nombre: "TecnoAgro del Norte",
     sector: "Agroindustria",
     ciudad: "Hermosillo",
@@ -149,10 +189,10 @@ async function seed() {
     const usuarioIds = {};
     for (const u of USUARIOS) {
       const [r] = await conn.execute(
-        "INSERT INTO usuarios (nombre, apellidos, correo, password_hash, rol) VALUES (?,?,?,?,?)",
-        [u.nombre, u.apellidos, u.correo, hash, u.rol],
+        "INSERT INTO usuarios (id, nombre, apellidos, correo, password_hash, rol) VALUES (?,?,?,?,?,?)",
+        [u.id, u.nombre, u.apellidos, u.correo, hash, u.rol],
       );
-      usuarioIds[u.correo] = r.insertId;
+      usuarioIds[u.correo] = u.id;   // guardamos el id manual
     }
     console.log(`👤  ${USUARIOS.length} usuarios insertados.`);
 
@@ -160,8 +200,9 @@ async function seed() {
     const empresaIds = [];
     for (const e of EMPRESAS) {
       const [r] = await conn.execute(
-        "INSERT INTO empresas (nombre, sector, ciudad, estado, convenio_vencimiento, contacto_nombre, contacto_email, contacto_telefono) VALUES (?,?,?,?,?,?,?,?)",
+        "INSERT INTO empresas (id, nombre, sector, ciudad, estado, convenio_vencimiento, contacto_nombre, contacto_email, contacto_telefono) VALUES (?,?,?,?,?,?,?,?,?)",
         [
+          e.id,
           e.nombre,
           e.sector,
           e.ciudad,
@@ -172,7 +213,7 @@ async function seed() {
           e.contacto_telefono,
         ],
       );
-      empresaIds.push(r.insertId);
+      empresaIds.push(e.id);
     }
     console.log(`🏢  ${EMPRESAS.length} empresas insertadas.`);
 
@@ -182,27 +223,29 @@ async function seed() {
     const deptos = ["Ing. en Sistemas", "Ing. Industrial"];
     for (let i = 0; i < asesorUsers.length; i++) {
       const uid = usuarioIds[asesorUsers[i].correo];
+      const asesorId = `ASE-${uid}`;   // id manual del asesor
       const [r] = await conn.execute(
-        "INSERT INTO asesores (usuario_id, departamento, num_empleado, max_residentes) VALUES (?,?,?,?)",
+        "INSERT INTO asesores (id, usuario_id, departamento, num_empleado, max_residentes) VALUES (?,?,?,?,?)",
         [
+          asesorId,
           uid,
           deptos[i] || "Ciencias Básicas",
           `EMP-${String(uid).padStart(4, "0")}`,
           12,
         ],
       );
-      asesorIds[asesorUsers[i].correo] = r.insertId;
+      asesorIds[asesorUsers[i].correo] = asesorId;
     }
     console.log(`👨‍🏫  ${asesorUsers.length} asesores insertados.`);
 
     // ── Jefe de Vinculación ───────────────────────────────
     const jefeUser = USUARIOS.find((u) => u.rol === "jefe");
     const jefeUid = usuarioIds[jefeUser.correo];
-    const [jefeR] = await conn.execute(
-      "INSERT INTO jefes_vinculacion (usuario_id, departamento) VALUES (?,?)",
-      [jefeUid, "Vinculación y Residencia Profesional"],
+    const jefeId = "JEF-1";
+    await conn.execute(
+      "INSERT INTO jefes_vinculacion (id, usuario_id, departamento) VALUES (?,?,?)",
+      [jefeId, jefeUid, "Vinculación y Residencia Profesional"],
     );
-    const jefeId = jefeR.insertId;
     console.log("🎓  Jefe de vinculación insertado.");
 
     // ── Residentes ────────────────────────────────────────
@@ -217,12 +260,14 @@ async function seed() {
     const asesorList = Object.values(asesorIds);
     for (let i = 0; i < residenteUsers.length; i++) {
       const uid = usuarioIds[residenteUsers[i].correo];
+      const resid = `RES-${uid}`;   // id manual del residente
       const [r] = await conn.execute(
         `INSERT INTO residentes
-          (usuario_id, num_control, carrera, semestre, empresa_id, asesor_id,
+          (id, usuario_id, num_control, carrera, semestre, empresa_id, asesor_id,
            horas_completadas, horas_requeridas, fecha_inicio, fecha_fin, estado)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
         [
+          resid,
           uid,
           `21${String(uid).padStart(6, "0")}`,
           carreras[i] || "Ing. Industrial",
@@ -236,7 +281,7 @@ async function seed() {
           "activo",
         ],
       );
-      residenteIds.push(r.insertId);
+      residenteIds.push(resid);
     }
     console.log(`🎒  ${residenteUsers.length} residentes insertados.`);
 
@@ -277,10 +322,12 @@ async function seed() {
     ];
     for (let i = 0; i < proyectos.length; i++) {
       const p = proyectos[i];
+      const projId = `PROY-${i+1}`;
       await conn.execute(
-        `INSERT INTO proyectos (titulo, descripcion, empresa_id, residente_id, asesor_id, estado, prioridad, tecnologias, progreso)
-         VALUES (?,?,?,?,?,?,?,?,?)`,
+        `INSERT INTO proyectos (id, titulo, descripcion, empresa_id, residente_id, asesor_id, estado, prioridad, tecnologias, progreso)
+         VALUES (?,?,?,?,?,?,?,?,?,?)`,
         [
+          projId,
           p.titulo,
           p.descripcion,
           empresaIds[i % empresaIds.length],
@@ -312,10 +359,12 @@ async function seed() {
     ];
     for (const rid of residenteIds) {
       for (let t = 0; t < tiposReporte.length; t++) {
+        const repId = `REP-${rid}-${t+1}`;   // id manual del reporte
         await conn.execute(
-          `INSERT INTO reportes (residente_id, tipo, fecha_limite, fecha_entrega, estado)
-           VALUES (?,?,?,?,?)`,
+          `INSERT INTO reportes (id, residente_id, tipo, fecha_limite, fecha_entrega, estado)
+           VALUES (?,?,?,?,?,?)`,
           [
+            repId,
             rid,
             tiposReporte[t],
             `2026-0${t + 2}-15`,
@@ -366,11 +415,13 @@ async function seed() {
         estado: "Pendiente",
       },
     ];
-    for (const c of citas) {
+    for (let i = 0; i < citas.length; i++) {
+      const c = citas[i];
+      const citaId = `CITA-${i+1}`;
       await conn.execute(
-        `INSERT INTO citas (solicitante_id, participante_id, tipo, motivo, fecha_hora, lugar, estado)
-         VALUES (?,?,?,?,?,?,?)`,
-        [c.sol, c.par, c.tipo, c.motivo, c.fecha, c.lugar, c.estado],
+        `INSERT INTO citas (id, solicitante_id, participante_id, tipo, motivo, fecha_hora, lugar, estado)
+         VALUES (?,?,?,?,?,?,?,?)`,
+        [citaId, c.sol, c.par, c.tipo, c.motivo, c.fecha, c.lugar, c.estado],
       );
     }
     console.log(`📅  ${citas.length} citas insertadas.`);
@@ -418,10 +469,12 @@ async function seed() {
         leida: false,
       },
     ];
-    for (const n of notifs) {
+    for (let i = 0; i < notifs.length; i++) {
+      const n = notifs[i];
+      const notifId = `NOT-${i+1}`;
       await conn.execute(
-        "INSERT INTO notificaciones (usuario_id, tipo, titulo, cuerpo, icono, leida) VALUES (?,?,?,?,?,?)",
-        [n.uid, n.tipo, n.titulo, n.cuerpo, n.icono, n.leida],
+        "INSERT INTO notificaciones (id, usuario_id, tipo, titulo, cuerpo, icono, leida) VALUES (?,?,?,?,?,?,?)",
+        [notifId, n.uid, n.tipo, n.titulo, n.cuerpo, n.icono, n.leida],
       );
     }
     console.log(`🔔  ${notifs.length} notificaciones insertadas.`);
@@ -457,16 +510,19 @@ async function seed() {
         obs: null,
       },
     ];
-    for (const f of fuentes) {
+    for (let i = 0; i < fuentes.length; i++) {
+      const f = fuentes[i];
+      const fuenteId = `FUENTE-${i+1}`;
       await conn.execute(
-        `INSERT INTO fuentes_informacion (residente_id, tipo, descripcion, estado, revisado_por, fecha_revision, observaciones)
-         VALUES (?,?,?,?,?,?,?)`,
+        `INSERT INTO fuentes_informacion (id, residente_id, tipo, descripcion, estado, revisado_por, fecha_revision, observaciones)
+         VALUES (?,?,?,?,?,?,?,?)`,
         [
+          fuenteId,
           f.res,
           f.tipo,
           f.desc,
           f.estado,
-          f.estado === "Validada" ? jefeId : null,
+          f.estado === "Validada" ? jefeUid : null,   // <-- antes jefeId, ahora jefeUid
           f.estado === "Validada" ? "2026-01-10" : null,
           f.obs,
         ],
