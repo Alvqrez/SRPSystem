@@ -3,6 +3,7 @@ import LoginScreen from "./src/shared/LoginScreen";
 import ResidenteApp from "./src/roles/residente/ResidenteApp";
 import AsesorApp from "./src/roles/asesor/AsesorApp";
 import JefeApp from "./src/roles/jefe/JefeApp";
+import { setAuthToken } from "./src/context/AuthContext";
 import { ReportesProvider } from "./src/context/ReportesContext";
 import { NotificacionesProvider } from "./src/context/NotificacionesContext";
 
@@ -26,6 +27,7 @@ export default function App() {
         return;
       }
       setLoginError("");
+      setAuthToken(data.token);
       setUsuario(data.usuario);
       setScreen("app");
     } catch (err) {
@@ -35,6 +37,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    setAuthToken(null);
     setUsuario(null);
     setScreen("login");
   };

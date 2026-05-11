@@ -1,17 +1,19 @@
 const express = require("express");
-const cors = require("cors");
+const cors    = require("cors");
 require("dotenv").config();
 
-const authRoutes = require("./routes/auth");
+const authRoutes  = require("./routes/auth");
+const citasRoutes = require("./routes/citas");
 
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
 
 // ── Rutas ────────────────────────────────────────────────────────────────────
-app.use("/api/auth", authRoutes);
+app.use("/api/auth",  authRoutes);
+app.use("/api/citas", citasRoutes);
 
 // Health check
 app.get("/api/health", (_, res) =>

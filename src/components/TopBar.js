@@ -8,7 +8,18 @@ import { useNotificaciones } from "../context/NotificacionesContext";
 export default function TopBar({ activeNav, navItems = [], setActiveNav, role, onLogout, usuario }) {
   const [query, setQuery] = useState("");
   const { unreadCount } = useNotificaciones() || { unreadCount: 0 };
-  const currentItem = navItems.find((item) => item.id === activeNav);
+  // Busca también dentro de grupos colapsables
+  const findNavItem = (items, id) => {
+    for (const item of items) {
+      if (item.id === id) return item;
+      if (item.group && item.children) {
+        const child = item.children.find((c) => c.id === id);
+        if (child) return child;
+      }
+    }
+    return null;
+  };
+  const currentItem = findNavItem(navItems, activeNav);
   const pageTitle   = currentItem ? currentItem.label : "Dashboard";
   const hasNotif    = navItems.some((item) => item.id === "notificaciones");
   const initials    = usuario?.nombre
@@ -16,11 +27,19 @@ export default function TopBar({ activeNav, navItems = [], setActiveNav, role, o
     : "??";
   const searchSection = () => {
     if (!query.trim()) return;
-
-    const match = navItems.find((item) =>
-      item.label.toLowerCase().includes(query.trim().toLowerCase()),
-    );
-    if (match && setActiveNav) setActiveNav(match.id);
+    const q = query.trim().toLowerCase();
+    // Busca en items directos y en hijos de grupos
+    for (const item of navItems) {
+      if (!item.group && item.label.toLowerCase().includes(q)) {
+        if (setActiveNav) setActiveNav(item.id);
+        setQuery("");
+        return;
+      }
+      if (item.group && item.children) {
+        const child = item.children.find((c) => c.label.toLowerCase().includes(q));
+        if (child) { if (setActiveNav) setActiveNav(child.id); setQuery(""); return; }
+      }
+    }
   };
 
   return (
