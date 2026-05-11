@@ -1,97 +1,370 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { useState, useMemo } from "react";
+import { View, Text, TouchableOpacity, ScrollView, TextInput } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../../constants/colors";
 import { Row, Card, StatCard, Badge, ProgressBar, SectionTitle } from "../../components";
+import { useProyectos } from "../../context/ProyectosContext";
+
+// Pie chart simple con SVG-like approach usando Views
+function PieChart({ data, size = 140 }) {
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+  if (total === 0) return null;
+  let cumulative = 0;
+
+  return (
+    <View style={{ alignItems: "center" }}>
+      <View style={{ width: size, height: size, borderRadius: size / 2, overflow: "hidden", position: "relative", backgroundColor: C.bg }}>
+        {data.map((slice, i) => {
+          const pct = (slice.value / total) * 100;
+          const startAngle = (cumulative / total) * 360;
+          cumulative += slice.value;
+          // Simulated pie with conic approach using stacked half-circles
+          return (
+            <View
+              key={i}
+              style={{
+                position: "absolute",
+                width: size,
+                height: size,
+                borderRadius: size / 2,
+                backgroundColor: "transparent",
+              }}
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  top: 0, left: 0, right: 0, bottom: 0,
+                  borderRadius: size / 2,
+                  borderWidth: size / 4,
+                  borderColor: "transparent",
+                  borderTopColor: slice.color,
+                  borderRightColor: pct > 25 ? slice.color : "transparent",
+                  borderBottomColor: pct > 50 ? slice.color : "transparent",
+                  borderLeftColor: pct > 75 ? slice.color : "transparent",
+                  transform: [{ rotate: `${startAngle}deg` }],
+                }}
+              />
+            </View>
+          );
+        })}
+        {/* Center hole */}
+        <View style={{ position: "absolute", top: size * 0.25, left: size * 0.25, width: size * 0.5, height: size * 0.5, borderRadius: size * 0.25, backgroundColor: C.card, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ fontSize: 18, fontWeight: "800", color: C.text }}>{total}</Text>
+          <Text style={{ fontSize: 9, color: C.textMuted }}>Total</Text>
+        </View>
+      </View>
+      {/* Legend */}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 12, justifyContent: "center" }}>
+        {data.map((d, i) => (
+          <Row key={i} style={{ alignItems: "center", gap: 5 }}>
+            <View style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: d.color }} />
+            <Text style={{ fontSize: 11, color: C.textMuted, fontWeight: "600" }}>{d.label}: {d.value}</Text>
+          </Row>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 export default function DashAsesor({ onNavigate }) {
-  const residentes = [
-    { iniciales: "AG", nombre: "Ana García",      empresa: "Telmex", proyecto: "App Móvil",      horas: "384/480", progreso: 80,  estado: "En Progreso",       estadoColor: C.blue,   estadoBg: C.blueLight   },
-    { iniciales: "LH", nombre: "Luis Hernández",  empresa: "Pemex",  proyecto: "Dashboard",      horas: "320/480", progreso: 67,  estado: "Pendiente Revisión", estadoColor: C.amber,  estadoBg: C.amberLight  },
-    { iniciales: "SM", nombre: "Sofía Martínez",  empresa: "Bimbo",  proyecto: "ERP",            horas: "440/480", progreso: 92,  estado: "Por Concluir",       estadoColor: C.purple, estadoBg: C.purpleLight },
-    { iniciales: "CL", nombre: "Carlos López",    empresa: "CFE",    proyecto: "Automatización", horas: "200/480", progreso: 42,  estado: "En Progreso",        estadoColor: C.blue,   estadoBg: C.blueLight   },
-    { iniciales: "MT", nombre: "María Torres",    empresa: "IMSS",   proyecto: "Portal Web",     horas: "480/480", progreso: 100, estado: "Completado",         estadoColor: C.green,  estadoBg: C.greenLight  },
+  const { proyectos } = useProyectos() || { proyectos: [] };
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [periodoFilter, setPeriodoFilter] = useState("todo"); // todo, mes, semestre
+
+  // Derived data
+  const allResidentes = useMemo(() => {
+    const res = [];
+    proyectos.forEach((p) => {
+      p.residentes.forEach((r) => {
+        if (!res.find((x) => x.nombre === r.nombre)) {
+          res.push({ ...r, proyecto: p.title, empresa: p.company, proyectoId: p.id, horas: p.horasDocumentadas, horasTotales: p.horasTotales, fase: p.phase });
+        }
+      });
+    });
+    return res;
+  }, [proyectos]);
+
+  const allReportes = useMemo(() => {
+    const reps = [];
+    proyectos.forEach((p) => {
+      p.reportes.forEach((r) => reps.push({ ...r, proyecto: p.title, proyectoId: p.id }));
+    });
+    return reps;
+  }, [proyectos]);
+
+  const allReuniones = useMemo(() => {
+    const meets = [];
+    proyectos.forEach((p) => {
+      p.reuniones.forEach((r) => meets.push({ ...r, proyecto: p.title }));
+    });
+    return meets;
+  }, [proyectos]);
+
+  // Stats
+  const residentesActivos = allResidentes.length;
+  const reportesPendientes = allReportes.filter((r) => r.status === "En Revisión" || r.status === "Pendiente Corrección").length;
+  const reportesAprobados = allReportes.filter((r) => r.status === "Aprobado").length;
+  const reportesRechazados = allReportes.filter((r) => r.status === "Rechazado" || r.status === "Pendiente Corrección").length;
+  const reportesTotal = allReportes.length;
+  const promedioAprobacion = reportesTotal > 0 ? Math.round((reportesAprobados / reportesTotal) * 100) : 0;
+
+  // Próximas reuniones (5 días)
+  const hoy = new Date();
+  const en5Dias = new Date(hoy.getTime() + 5 * 24 * 60 * 60 * 1000);
+  const proximasReuniones = allReuniones.filter((r) => {
+    const fecha = new Date(r.fecha);
+    return fecha >= hoy && fecha <= en5Dias;
+  });
+
+  // Alertas de rezagados (>5 días en revisión sin aprobar)
+  const alertasRezagados = useMemo(() => {
+    return allReportes.filter((r) => {
+      if (r.status !== "En Revisión") return false;
+      const fechaEnvio = new Date(r.fecha);
+      const diasEnRevision = Math.floor((hoy - fechaEnvio) / (1000 * 60 * 60 * 24));
+      return diasEnRevision > 5;
+    });
+  }, [allReportes]);
+
+  // Pie chart data
+  const pieData = [
+    { label: "Aprobados", value: reportesAprobados, color: C.green },
+    { label: "Pendientes", value: allReportes.filter((r) => r.status === "En Revisión").length, color: C.amber },
+    { label: "Rechazados", value: reportesRechazados, color: C.red },
   ];
 
-  const reportesPendientes = [
-    { dot: C.amber, texto: "Luis Hernández — Reporte 2 en revisión",   sub: "Recibido hace 2 días"   },
-    { dot: C.amber, texto: "Carlos López — Reporte 1 esperando firma", sub: "Recibido hace 5 días"   },
-    { dot: C.red,   texto: "Ana García — Reporte 3 con observaciones", sub: "Requiere correcciones"  },
-  ];
+  // Search results
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    const results = [];
+    allResidentes.forEach((r) => {
+      if (r.nombre.toLowerCase().includes(q)) results.push({ tipo: "Residente", nombre: r.nombre, sub: r.proyecto, icon: "user" });
+    });
+    proyectos.forEach((p) => {
+      if (p.title.toLowerCase().includes(q)) results.push({ tipo: "Proyecto", nombre: p.title, sub: p.company, icon: "folder" });
+    });
+    allReuniones.forEach((r) => {
+      if (r.titulo.toLowerCase().includes(q)) results.push({ tipo: "Reunión", nombre: r.titulo, sub: r.fecha, icon: "calendar" });
+    });
+    return results.slice(0, 8);
+  }, [searchQuery, allResidentes, proyectos, allReuniones]);
 
-  const reuniones = [
-    { nombre: "Ana García",     hora: "Hoy 15:00",    tag: "Reporte 3",   tagColor: C.teal  },
-    { nombre: "Sofía Martínez", hora: "Mañana 10:30", tag: "Cierre",      tagColor: C.green },
-    { nombre: "Carlos López",   hora: "Vie 14:00",    tag: "Seguimiento", tagColor: C.blue  },
-  ];
+  // Filter reportes by period
+  const filteredReportes = useMemo(() => {
+    if (periodoFilter === "todo") return allReportes;
+    const now = new Date();
+    if (periodoFilter === "mes") {
+      const mesAnterior = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      return allReportes.filter((r) => new Date(r.fecha) >= mesAnterior);
+    }
+    if (periodoFilter === "semestre") {
+      const semestreAnterior = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+      return allReportes.filter((r) => new Date(r.fecha) >= semestreAnterior);
+    }
+    return allReportes;
+  }, [periodoFilter, allReportes]);
+
+  const filteredAprobados = filteredReportes.filter((r) => r.status === "Aprobado").length;
+  const filteredRechazados = filteredReportes.filter((r) => r.status === "Rechazado" || r.status === "Pendiente Corrección").length;
+  const filteredPendientes = filteredReportes.filter((r) => r.status === "En Revisión").length;
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 24 }}>
+      {/* Search Bar */}
+      <View style={{ marginBottom: 20, position: "relative", zIndex: 50 }}>
+        <Row style={{ gap: 12, alignItems: "center" }}>
+          <View style={{ flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: C.card, borderRadius: 10, borderWidth: 1, borderColor: C.border, paddingHorizontal: 14, gap: 8 }}>
+            <Feather name="search" size={16} color={C.textMuted} />
+            <TextInput
+              value={searchQuery}
+              onChangeText={(v) => { setSearchQuery(v); setShowSearch(true); }}
+              onFocus={() => setShowSearch(true)}
+              placeholder="Buscar residente, proyecto o reunión..."
+              placeholderTextColor={C.textLight}
+              style={{ flex: 1, paddingVertical: 11, fontSize: 13, color: C.text }}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => { setSearchQuery(""); setShowSearch(false); }}>
+                <Feather name="x" size={14} color={C.textMuted} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </Row>
+        {/* Search Dropdown */}
+        {showSearch && searchResults.length > 0 && (
+          <View style={{ position: "absolute", top: 48, left: 0, right: 0, backgroundColor: C.card, borderRadius: 12, borderWidth: 1, borderColor: C.border, padding: 8, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 10, elevation: 5, zIndex: 100 }}>
+            {searchResults.map((r, i) => (
+              <TouchableOpacity
+                key={i}
+                onPress={() => { setShowSearch(false); setSearchQuery(""); }}
+                style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 10, paddingHorizontal: 10, borderBottomWidth: i < searchResults.length - 1 ? 1 : 0, borderBottomColor: C.border }}
+              >
+                <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: C.tealLight, alignItems: "center", justifyContent: "center" }}>
+                  <Feather name={r.icon} size={14} color={C.teal} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>{r.nombre}</Text>
+                  <Text style={{ fontSize: 11, color: C.textMuted }}>{r.tipo} · {r.sub}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+
       <SectionTitle title="Dashboard Asesor" />
 
       {/* Stat Cards */}
       <Row style={{ gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
-        <StatCard label="Residentes Activos"  value="12"  sub="3 departamentos"    icon="users"       iconBg={C.tealLight}  iconColor={C.teal}  trend="+2"  trendUp />
-        <StatCard label="Reportes Pendientes" value="5"   sub="Por revisar"        icon="file-text"   iconBg={C.amberLight} iconColor={C.amber} />
-        <StatCard label="Tasa Aprobación"     value="94%" sub="Último trimestre"   icon="trending-up" iconBg={C.greenLight} iconColor={C.green} trend="+3%" trendUp />
-        <StatCard label="Próx. Reuniones"     value="3"   sub="Esta semana"        icon="calendar"    iconBg={C.blueLight}  iconColor={C.blue}  />
+        <StatCard label="Residentes Activos" value={String(residentesActivos)} sub={`${proyectos.length} proyectos`} icon="users" iconBg={C.tealLight} iconColor={C.teal} trend="+2" trendUp />
+        <StatCard label="Reportes Pendientes" value={String(reportesPendientes)} sub="Por revisar" icon="file-text" iconBg={C.amberLight} iconColor={C.amber} />
+        <StatCard label="Tasa Aprobación" value={`${promedioAprobacion}%`} sub="Global" icon="trending-up" iconBg={C.greenLight} iconColor={C.green} trend="+3%" trendUp />
+        <StatCard label="Próx. Reuniones" value={String(proximasReuniones.length)} sub="Próximos 5 días" icon="calendar" iconBg={C.blueLight} iconColor={C.blue} />
+      </Row>
+
+      {/* Gráfica de Pastel + Filtros de Periodo */}
+      <Row style={{ gap: 20, marginBottom: 20, alignItems: "flex-start" }}>
+        <Card style={{ flex: 1 }}>
+          <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <Text style={{ fontSize: 15, fontWeight: "700", color: C.text }}>Estado de Reportes</Text>
+            <Row style={{ gap: 6 }}>
+              {[{ id: "todo", label: "Todo" }, { id: "mes", label: "Mes" }, { id: "semestre", label: "Semestre" }].map((f) => (
+                <TouchableOpacity
+                  key={f.id}
+                  onPress={() => setPeriodoFilter(f.id)}
+                  style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, backgroundColor: periodoFilter === f.id ? C.teal : C.bg, borderWidth: 1, borderColor: periodoFilter === f.id ? C.teal : C.border }}
+                >
+                  <Text style={{ fontSize: 10, fontWeight: "700", color: periodoFilter === f.id ? "white" : C.textMuted }}>{f.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </Row>
+          </Row>
+          <PieChart data={[
+            { label: "Aprobados", value: filteredAprobados, color: C.green },
+            { label: "Pendientes", value: filteredPendientes, color: C.amber },
+            { label: "Rechazados", value: filteredRechazados, color: C.red },
+          ]} />
+          {/* Bar indicators */}
+          <View style={{ marginTop: 16, gap: 8 }}>
+            <Row style={{ alignItems: "center", gap: 8 }}>
+              <View style={{ flex: filteredAprobados || 1, height: 8, borderRadius: 4, backgroundColor: C.green }} />
+              <Text style={{ fontSize: 11, color: C.textMuted, width: 20 }}>{filteredAprobados}</Text>
+            </Row>
+            <Row style={{ alignItems: "center", gap: 8 }}>
+              <View style={{ flex: filteredPendientes || 1, height: 8, borderRadius: 4, backgroundColor: C.amber }} />
+              <Text style={{ fontSize: 11, color: C.textMuted, width: 20 }}>{filteredPendientes}</Text>
+            </Row>
+            <Row style={{ alignItems: "center", gap: 8 }}>
+              <View style={{ flex: filteredRechazados || 1, height: 8, borderRadius: 4, backgroundColor: C.red }} />
+              <Text style={{ fontSize: 11, color: C.textMuted, width: 20 }}>{filteredRechazados}</Text>
+            </Row>
+          </View>
+        </Card>
+
+        {/* Alertas Rezagados */}
+        <Card style={{ flex: 1 }}>
+          <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <Text style={{ fontSize: 15, fontWeight: "700", color: C.text }}>Alertas de Rezagados</Text>
+            {alertasRezagados.length > 0 && <Badge text={String(alertasRezagados.length)} color={C.red} bg={C.redLight} />}
+          </Row>
+          {alertasRezagados.length === 0 ? (
+            <View style={{ alignItems: "center", paddingVertical: 20 }}>
+              <Feather name="check-circle" size={28} color={C.green} style={{ marginBottom: 8 }} />
+              <Text style={{ fontSize: 12, color: C.textMuted }}>Sin reportes rezagados</Text>
+            </View>
+          ) : (
+            <View style={{ gap: 10 }}>
+              {alertasRezagados.map((r, i) => {
+                const dias = Math.floor((hoy - new Date(r.fecha)) / (1000 * 60 * 60 * 24));
+                return (
+                  <View key={i} style={{ backgroundColor: C.redLight, borderRadius: 10, padding: 12, borderLeftWidth: 3, borderLeftColor: C.red }}>
+                    <Row style={{ alignItems: "center", gap: 8 }}>
+                      <Feather name="alert-triangle" size={14} color={C.red} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 12, fontWeight: "700", color: C.text }}>{r.residente}</Text>
+                        <Text style={{ fontSize: 11, color: C.textMuted }}>{r.titulo} · {r.proyecto}</Text>
+                      </View>
+                      <Badge text={`${dias} días`} color={C.red} bg="#FCA5A522" />
+                    </Row>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+          <TouchableOpacity
+            onPress={() => onNavigate && onNavigate("seguimiento")}
+            style={{ marginTop: 14, borderWidth: 1, borderColor: C.red, borderRadius: 8, paddingVertical: 8, alignItems: "center" }}
+          >
+            <Text style={{ color: C.red, fontSize: 12, fontWeight: "600" }}>Revisar reportes pendientes</Text>
+          </TouchableOpacity>
+        </Card>
       </Row>
 
       {/* Mis Residentes */}
       <Card style={{ marginBottom: 20 }}>
         <Text style={{ fontSize: 16, fontWeight: "700", color: C.text, marginBottom: 16 }}>Mis Residentes</Text>
         <Row style={{ paddingHorizontal: 12, paddingVertical: 10, backgroundColor: C.bg, borderRadius: 8, marginBottom: 4 }}>
-          <Text style={{ flex: 3, fontSize: 12, fontWeight: "600", color: C.textMuted }}>RESIDENTE</Text>
-          <Text style={{ flex: 2, fontSize: 12, fontWeight: "600", color: C.textMuted }}>EMPRESA / PROYECTO</Text>
+          <Text style={{ flex: 2, fontSize: 12, fontWeight: "600", color: C.textMuted }}>RESIDENTE</Text>
+          <Text style={{ flex: 2, fontSize: 12, fontWeight: "600", color: C.textMuted }}>PROYECTO</Text>
           <Text style={{ flex: 1, fontSize: 12, fontWeight: "600", color: C.textMuted, textAlign: "center" }}>HORAS</Text>
           <Text style={{ flex: 2, fontSize: 12, fontWeight: "600", color: C.textMuted, textAlign: "center" }}>PROGRESO</Text>
-          <Text style={{ flex: 2, fontSize: 12, fontWeight: "600", color: C.textMuted, textAlign: "center" }}>ESTADO</Text>
+          <Text style={{ flex: 1, fontSize: 12, fontWeight: "600", color: C.textMuted, textAlign: "center" }}>FASE</Text>
         </Row>
-        {residentes.map((r, i) => (
-          <Row key={i} style={{ paddingHorizontal: 12, paddingVertical: 14, borderBottomWidth: i < residentes.length - 1 ? 1 : 0, borderBottomColor: C.border, alignItems: "center" }}>
-            <Row style={{ flex: 3, gap: 10, alignItems: "center" }}>
-              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.tealLight, alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ fontSize: 13, fontWeight: "700", color: C.teal }}>{r.iniciales}</Text>
+        {allResidentes.map((r, i) => {
+          const pct = r.horasTotales > 0 ? Math.round((r.horas / r.horasTotales) * 100) : 0;
+          const faseLabel = { propuesto: "Propuesto", desarrollo: "Desarrollo", revision: "Revisión", concluido: "Concluido" }[r.fase] || r.fase;
+          const faseColor = { propuesto: C.blue, desarrollo: C.amber, revision: C.purple, concluido: C.green }[r.fase] || C.textMuted;
+          return (
+            <Row key={i} style={{ paddingHorizontal: 12, paddingVertical: 14, borderBottomWidth: i < allResidentes.length - 1 ? 1 : 0, borderBottomColor: C.border, alignItems: "center" }}>
+              <Row style={{ flex: 2, gap: 10, alignItems: "center" }}>
+                <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.tealLight, alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ fontSize: 12, fontWeight: "700", color: C.teal }}>{r.iniciales}</Text>
+                </View>
+                <View>
+                  <Text style={{ fontSize: 13, color: C.text, fontWeight: "600" }}>{r.nombre}</Text>
+                  <Text style={{ fontSize: 11, color: C.textMuted }}>{r.rol}</Text>
+                </View>
+              </Row>
+              <View style={{ flex: 2 }}>
+                <Text style={{ fontSize: 13, color: C.text }}>{r.proyecto}</Text>
+                <Text style={{ fontSize: 11, color: C.textMuted }}>{r.empresa}</Text>
               </View>
-              <Text style={{ fontSize: 14, color: C.text, fontWeight: "600" }}>{r.nombre}</Text>
+              <Text style={{ flex: 1, fontSize: 12, color: C.textMuted, textAlign: "center" }}>{r.horas}/{r.horasTotales}</Text>
+              <View style={{ flex: 2, paddingHorizontal: 8 }}>
+                <ProgressBar pct={pct} color={C.teal} />
+                <Text style={{ fontSize: 10, color: C.textMuted, marginTop: 3, textAlign: "center" }}>{pct}%</Text>
+              </View>
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <Badge text={faseLabel} color={faseColor} bg={faseColor + "22"} />
+              </View>
             </Row>
-            <View style={{ flex: 2 }}>
-              <Text style={{ fontSize: 13, color: C.text }}>{r.empresa}</Text>
-              <Text style={{ fontSize: 12, color: C.textMuted }}>{r.proyecto}</Text>
-            </View>
-            <Text style={{ flex: 1, fontSize: 13, color: C.textMuted, textAlign: "center" }}>{r.horas}</Text>
-            <View style={{ flex: 2, paddingHorizontal: 8 }}>
-              <ProgressBar pct={r.progreso} color={C.teal} />
-              <Text style={{ fontSize: 11, color: C.textMuted, marginTop: 4, textAlign: "center" }}>{r.progreso}%</Text>
-            </View>
-            <View style={{ flex: 2, alignItems: "center" }}>
-              <Badge text={r.estado} color={r.estadoColor} bg={r.estadoBg} />
-            </View>
-          </Row>
-        ))}
+          );
+        })}
       </Card>
 
       {/* Reportes Pendientes + Agenda */}
       <Row style={{ gap: 20, alignItems: "flex-start" }}>
-
         <Card style={{ flex: 1 }}>
           <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <Text style={{ fontSize: 15, fontWeight: "700", color: C.text }}>Reportes Pendientes</Text>
-            <Badge text="3" color={C.amber} bg={C.amberLight} />
+            <Text style={{ fontSize: 15, fontWeight: "700", color: C.text }}>Reportes por Revisar</Text>
+            <Badge text={String(reportesPendientes)} color={C.amber} bg={C.amberLight} />
           </Row>
-          <View style={{ gap: 14 }}>
-            {reportesPendientes.map((item, i) => (
-              <Row key={i} style={{ gap: 12, alignItems: "flex-start" }}>
-                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: item.dot, marginTop: 4 }} />
+          <View style={{ gap: 10 }}>
+            {allReportes.filter((r) => r.status === "En Revisión").slice(0, 5).map((r, i) => (
+              <Row key={i} style={{ gap: 10, alignItems: "flex-start", backgroundColor: C.bg, borderRadius: 8, padding: 10 }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.amber, marginTop: 5 }} />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 13, color: C.text, fontWeight: "500" }}>{item.texto}</Text>
-                  <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>{item.sub}</Text>
+                  <Text style={{ fontSize: 13, color: C.text, fontWeight: "500" }}>{r.residente} — {r.titulo}</Text>
+                  <Text style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{r.proyecto} · {r.fecha}</Text>
                 </View>
               </Row>
             ))}
           </View>
           <TouchableOpacity
             onPress={() => onNavigate && onNavigate("seguimiento")}
-            style={{ marginTop: 16, borderWidth: 1, borderColor: C.teal, borderRadius: 8, paddingVertical: 9, alignItems: "center" }}
+            style={{ marginTop: 14, borderWidth: 1, borderColor: C.teal, borderRadius: 8, paddingVertical: 9, alignItems: "center" }}
           >
             <Text style={{ color: C.teal, fontSize: 13, fontWeight: "600" }}>Ver todos los reportes</Text>
           </TouchableOpacity>
@@ -99,31 +372,65 @@ export default function DashAsesor({ onNavigate }) {
 
         <Card style={{ flex: 1 }}>
           <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <Text style={{ fontSize: 15, fontWeight: "700", color: C.text }}>Agenda de Reuniones</Text>
-            <Badge text="3" color={C.blue} bg={C.blueLight} />
+            <Text style={{ fontSize: 15, fontWeight: "700", color: C.text }}>Próximas Reuniones</Text>
+            <Badge text={String(proximasReuniones.length)} color={C.blue} bg={C.blueLight} />
           </Row>
-          <View style={{ gap: 14 }}>
-            {reuniones.map((r, i) => (
-              <Row key={i} style={{ gap: 12, alignItems: "center", paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.bg, borderRadius: 8 }}>
-                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.blueLight, alignItems: "center", justifyContent: "center" }}>
-                  <Feather name="user" size={16} color={C.blue} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>{r.nombre}</Text>
-                  <Text style={{ fontSize: 12, color: C.textMuted }}>{r.hora}</Text>
-                </View>
-                <Badge text={r.tag} color={r.tagColor} bg={r.tagColor + "22"} />
-              </Row>
-            ))}
+          <View style={{ gap: 10 }}>
+            {proximasReuniones.length === 0 ? (
+              <Text style={{ fontSize: 12, color: C.textMuted, textAlign: "center", paddingVertical: 16 }}>Sin reuniones en los próximos 5 días</Text>
+            ) : (
+              proximasReuniones.map((r, i) => (
+                <Row key={i} style={{ gap: 10, alignItems: "center", paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.bg, borderRadius: 8 }}>
+                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.blueLight, alignItems: "center", justifyContent: "center" }}>
+                    <Feather name={r.modalidad === "Virtual" ? "monitor" : "map-pin"} size={14} color={C.blue} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>{r.titulo}</Text>
+                    <Text style={{ fontSize: 11, color: C.textMuted }}>{r.fecha} · {r.hora}</Text>
+                  </View>
+                  <Badge text={r.modalidad} color={r.modalidad === "Virtual" ? C.purple : C.teal} bg={r.modalidad === "Virtual" ? C.purpleLight : C.tealLight} />
+                </Row>
+              ))
+            )}
           </View>
           <TouchableOpacity
             onPress={() => onNavigate && onNavigate("calendario")}
-            style={{ marginTop: 16, borderWidth: 1, borderColor: C.blue, borderRadius: 8, paddingVertical: 9, alignItems: "center" }}
+            style={{ marginTop: 14, borderWidth: 1, borderColor: C.blue, borderRadius: 8, paddingVertical: 9, alignItems: "center" }}
           >
             <Text style={{ color: C.blue, fontSize: 13, fontWeight: "600" }}>Ver agenda completa</Text>
           </TouchableOpacity>
         </Card>
       </Row>
+
+      {/* Historial de Cambios (reportes rechazados y luego aprobados) */}
+      <Card style={{ marginTop: 20 }}>
+        <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <Text style={{ fontSize: 15, fontWeight: "700", color: C.text }}>Historial de Cambios</Text>
+          <Feather name="git-branch" size={16} color={C.textMuted} />
+        </Row>
+        <View style={{ gap: 10 }}>
+          {allReportes
+            .filter((r) => r.historial && r.historial.length > 1)
+            .slice(0, 5)
+            .map((r, i) => (
+              <View key={i} style={{ backgroundColor: C.bg, borderRadius: 10, padding: 12 }}>
+                <Row style={{ justifyContent: "space-between", marginBottom: 6 }}>
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>{r.residente} — {r.titulo}</Text>
+                  <Badge text={r.status} color={r.status === "Aprobado" ? C.green : C.amber} bg={r.status === "Aprobado" ? C.greenLight : C.amberLight} />
+                </Row>
+                {r.historial.map((h, hi) => (
+                  <Row key={hi} style={{ alignItems: "center", gap: 6, marginTop: 4 }}>
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: h.status === "Aprobado" ? C.green : C.red }} />
+                    <Text style={{ fontSize: 11, color: C.textMuted }}>{h.fecha} — {h.status}: {h.comentario}</Text>
+                  </Row>
+                ))}
+              </View>
+            ))}
+          {allReportes.filter((r) => r.historial && r.historial.length > 1).length === 0 && (
+            <Text style={{ fontSize: 12, color: C.textMuted, textAlign: "center", paddingVertical: 12 }}>Sin historial de cambios</Text>
+          )}
+        </View>
+      </Card>
     </ScrollView>
   );
 }

@@ -6,6 +6,7 @@ import TopBar from "../../components/TopBar";
 
 import DashJefe from "./DashJefe";
 import ValidacionFuentes from "./ValidacionFuentes";
+import PropuestasAsesores from "./PropuestasAsesores";
 import GestionEmpresas from "../../screens/GestionEmpresas";
 import GestionProyectos from "../../screens/GestionProyectos";
 import Seguimiento from "../../screens/Seguimiento";
@@ -16,6 +17,7 @@ const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "grid" },
   { id: "empresas", label: "Empresas", icon: "briefcase" },
   { id: "proyectos", label: "Proyectos", icon: "folder" },
+  { id: "propuestas", label: "Propuestas", icon: "send" },
   { id: "seguimiento", label: "Seguimiento", icon: "file-text" },
   {
     id: "validacion-fuentes",
@@ -32,6 +34,7 @@ function JefeAppInner({ usuario, onLogout }) {
     dashboard: <DashJefe onNavigate={setActiveNav} />,
     empresas: <GestionEmpresas />,
     proyectos: <GestionProyectos />,
+    propuestas: <PropuestasAsesores onNavigate={setActiveNav} />,
     seguimiento: <Seguimiento />,
     "validacion-fuentes": <ValidacionFuentes onNavigate={setActiveNav} />,
     notificaciones: <Notificaciones onNavigate={setActiveNav} />,

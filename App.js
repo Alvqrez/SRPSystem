@@ -6,6 +6,7 @@ import JefeApp from "./src/roles/jefe/JefeApp";
 import { setAuthToken } from "./src/context/AuthContext";
 import { ReportesProvider } from "./src/context/ReportesContext";
 import { NotificacionesProvider } from "./src/context/NotificacionesContext";
+import { ProyectosProvider } from "./src/context/ProyectosContext";
 
 export default function App() {
   const [screen, setScreen] = useState("login");
@@ -43,20 +44,22 @@ export default function App() {
   };
 
   return (
-    <ReportesProvider>
-      <NotificacionesProvider initialUnread={4}>
-        {screen === "login" || !usuario ? (
-          <LoginScreen onLogin={handleLogin} loginError={loginError} />
-        ) : rolNormalizado === "residente" ? (
-          <ResidenteApp usuario={usuario} onLogout={handleLogout} />
-        ) : rolNormalizado === "asesor" ? (
-          <AsesorApp usuario={usuario} onLogout={handleLogout} />
-        ) : rolNormalizado === "jefe" ? (
-          <JefeApp usuario={usuario} onLogout={handleLogout} />
-        ) : (
-          <LoginScreen onLogin={handleLogin} loginError={loginError} />
-        )}
-      </NotificacionesProvider>
-    </ReportesProvider>
+    <ProyectosProvider>
+      <ReportesProvider>
+        <NotificacionesProvider initialUnread={4}>
+          {screen === "login" || !usuario ? (
+            <LoginScreen onLogin={handleLogin} loginError={loginError} />
+          ) : rolNormalizado === "residente" ? (
+            <ResidenteApp usuario={usuario} onLogout={handleLogout} />
+          ) : rolNormalizado === "asesor" ? (
+            <AsesorApp usuario={usuario} onLogout={handleLogout} />
+          ) : rolNormalizado === "jefe" ? (
+            <JefeApp usuario={usuario} onLogout={handleLogout} />
+          ) : (
+            <LoginScreen onLogin={handleLogin} loginError={loginError} />
+          )}
+        </NotificacionesProvider>
+      </ReportesProvider>
+    </ProyectosProvider>
   );
 }

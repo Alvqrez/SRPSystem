@@ -5,7 +5,7 @@ import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
 
 import DashAsesor from "./DashAsesor";
-import GestionProyectos from "../../screens/GestionProyectos";
+import ProyectosAsesor from "./ProyectosAsesor";
 import SeguimientoAsesor from "../../screens/SeguimientoAsesor";
 import Notificaciones from "../../screens/Notificaciones";
 import CalendarioCitas from "../../screens/CalendarioCitas";
@@ -23,7 +23,7 @@ export default function AsesorApp({ usuario, onLogout }) {
 
   const views = {
     dashboard: <DashAsesor onNavigate={setActiveNav} />,
-    proyectos: <GestionProyectos />,
+    proyectos: <ProyectosAsesor />,
     seguimiento: <SeguimientoAsesor />,
     notificaciones: <Notificaciones onNavigate={setActiveNav} />,
     calendario: <CalendarioCitas />,

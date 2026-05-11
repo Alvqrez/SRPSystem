@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import { Row, Card, StatCard, Badge, ProgressBar } from "../components";
 import { useReportes } from "../context/ReportesContext";
+import { useNotificaciones } from "../context/NotificacionesContext";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const statusStyle = (status) =>
@@ -22,6 +23,7 @@ const todayStr = () => {
 
 export default function Seguimiento() {
   const { reports, updateReport, preliminarAprobado, finalDesbloqueado } = useReportes() || {};
+  const { setNotifications } = useNotificaciones() || {};
   const [selected, setSelected]       = useState(null);
   const [viewingReport, setViewing]   = useState(null);
 
@@ -38,7 +40,30 @@ export default function Seguimiento() {
 
   // ── Actions ───────────────────────────────────────────────────────────────
   const deliverReport = (id) => {
+    const report = reports?.find((r) => r.id === id);
     updateReport(id, { status: "En Revisión", submitted: todayStr() });
+
+    // Notificar al asesor
+    if (setNotifications) {
+      setNotifications((prev) => [{
+        id: Date.now(),
+        icon: "file-text",
+        iconBg: C.blueLight,
+        iconColor: C.blue,
+        title: `Nuevo reporte entregado: ${report?.title || "Reporte"}`,
+        body: "Un residente ha entregado un reporte que requiere tu revisión.",
+        time: "Ahora",
+        unread: true,
+        type: "Reporte",
+        typeBg: C.blueLight,
+        typeColor: C.blue,
+        proyecto: "App de Logística Interna",
+        fase: "desarrollo",
+        actionScreen: "seguimiento",
+        actionLabel: "Revisar reporte",
+      }, ...(prev || [])]);
+    }
+
     Alert.alert("Reporte entregado", "Queda en revisión por tu asesor.");
   };
 

@@ -328,11 +328,27 @@ export default function Notificaciones({ onNavigate }) {
                       fontSize: 12,
                       color: C.textMuted,
                       lineHeight: 17,
-                      marginBottom: 10,
+                      marginBottom: 4,
                     }}
                   >
                     {notif.body}
                   </Text>
+                  {(notif.proyecto || notif.fase) && (
+                    <Row style={{ gap: 8, marginBottom: 6 }}>
+                      {notif.proyecto && (
+                        <Row style={{ alignItems: "center", gap: 4 }}>
+                          <Feather name="folder" size={10} color={C.teal} />
+                          <Text style={{ fontSize: 10, color: C.teal, fontWeight: "600" }}>{notif.proyecto}</Text>
+                        </Row>
+                      )}
+                      {notif.fase && (
+                        <Row style={{ alignItems: "center", gap: 4 }}>
+                          <Feather name="layers" size={10} color={C.purple} />
+                          <Text style={{ fontSize: 10, color: C.purple, fontWeight: "600" }}>Fase: {notif.fase}</Text>
+                        </Row>
+                      )}
+                    </Row>
+                  )}
 
                   <Row
                     style={{
