@@ -94,7 +94,7 @@ const monthKey = (date) => `${date.getFullYear()}-${date.getMonth()}`;
 
 export default function CalendarioCitas() {
   const [selected, setSelected] = useState(null);
-  const [monthDate, setMonthDate] = useState(new Date(2026, 0, 1)); // Enero 2026
+  const [monthDate, setMonthDate] = useState(() => { const t = new Date(); return new Date(t.getFullYear(), t.getMonth(), 1); });
   const [events, setEvents] = useState(EVENTS_INIT);
   const [upcoming, setUpcoming] = useState(UPCOMING_INIT);
 

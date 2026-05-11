@@ -3,6 +3,7 @@ import { Alert, View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import { Row, Card, ProgressBar, Badge } from "../components";
+import { useReportes } from "../context/ReportesContext";
 
 const CHECKLIST = [
   { label: "Portada e identificación", done: true },
@@ -37,14 +38,55 @@ const RUBRIC = [
 ];
 
 export default function ReporteFinal() {
+  const { finalDesbloqueado, todosParcialesAprobados, preliminarAprobado, updateReport } = useReportes() || {};
   const [uploadHover, setUploadHover] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const doneCount = CHECKLIST.filter((i) => i.done).length;
   const pct = Math.round((doneCount / CHECKLIST.length) * 100);
 
   const totalEarned = RUBRIC.reduce((s, r) => s + r.earned, 0);
   const totalMax = RUBRIC.reduce((s, r) => s + r.max, 0);
+
+  // ── Lock screen ──────────────────────────────────────────────────────────
+  if (!finalDesbloqueado) {
+    const faltaPreliminar = !preliminarAprobado;
+    const faltaParciales  = preliminarAprobado && !todosParcialesAprobados;
+    return (
+      <View style={{ flex: 1, backgroundColor: C.bg, alignItems: "center", justifyContent: "center", padding: 40 }}>
+        <View style={{ width: 80, height: 80, borderRadius: 20, backgroundColor: C.amberLight, alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+          <Feather name="lock" size={36} color={C.amber} />
+        </View>
+        <Text style={{ fontSize: 22, fontWeight: "800", color: C.text, textAlign: "center", marginBottom: 10 }}>
+          Reporte Final bloqueado
+        </Text>
+        <Text style={{ fontSize: 14, color: C.textMuted, textAlign: "center", lineHeight: 22, maxWidth: 420, marginBottom: 28 }}>
+          {faltaPreliminar
+            ? "Necesitas que tu Reporte Preliminar sea aprobado por tu asesor antes de poder entregar el Reporte Final."
+            : faltaParciales
+            ? "Todos tus reportes parciales deben estar en estado Aprobado para desbloquear el Reporte Final."
+            : "Completa todos los requisitos previos para desbloquear el Reporte Final."}
+        </Text>
+        <View style={{ backgroundColor: C.card, borderRadius: 14, padding: 20, borderWidth: 1, borderColor: C.border, width: "100%", maxWidth: 380 }}>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: C.textSub, marginBottom: 12 }}>Requisitos</Text>
+          {[
+            { label: "Reporte Preliminar aprobado", done: !!preliminarAprobado },
+            { label: "Reporte Parcial 1 aprobado",  done: false },
+            { label: "Reporte Parcial 2 aprobado",  done: false },
+            { label: "Reporte Parcial 3 aprobado",  done: false },
+          ].map((req, i) => (
+            <Row key={i} style={{ alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <View style={{ width: 20, height: 20, borderRadius: 6, backgroundColor: req.done ? C.green : C.bg, borderWidth: req.done ? 0 : 1, borderColor: C.border, alignItems: "center", justifyContent: "center" }}>
+                {req.done && <Feather name="check" size={12} color="white" />}
+              </View>
+              <Text style={{ fontSize: 13, color: req.done ? C.textSub : C.textLight, fontWeight: req.done ? "600" : "400" }}>{req.label}</Text>
+            </Row>
+          ))}
+        </View>
+      </View>
+    );
+  }
 
   const selectFile = () => {
     if (!globalThis?.document?.createElement) {
@@ -347,6 +389,32 @@ export default function ReporteFinal() {
               Formatos aceptados: PDF, DOCX · Tamaño máximo: 25 MB
             </Text>
           </Card>
+
+          {/* Submit button */}
+          {!submitted ? (
+            <TouchableOpacity
+              onPress={() => {
+                if (!selectedFile) { Alert.alert("Sin archivo", "Selecciona tu documento antes de entregar."); return; }
+                const today = new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
+                updateReport && updateReport("final", { status: "En Revisión", submitted: today });
+                setSubmitted(true);
+                Alert.alert("Reporte Final entregado", "Tu asesor recibirá una notificación para revisarlo.");
+              }}
+              style={{ backgroundColor: C.navy, borderRadius: 12, padding: 16, alignItems: "center", marginTop: 4 }}
+            >
+              <Row style={{ alignItems: "center", gap: 8 }}>
+                <Feather name="send" size={16} color="white" />
+                <Text style={{ fontSize: 14, fontWeight: "800", color: "white" }}>Entregar Reporte Final</Text>
+              </Row>
+            </TouchableOpacity>
+          ) : (
+            <View style={{ backgroundColor: C.greenLight, borderRadius: 12, padding: 16, alignItems: "center", marginTop: 4 }}>
+              <Row style={{ alignItems: "center", gap: 8 }}>
+                <Feather name="check-circle" size={16} color={C.green} />
+                <Text style={{ fontSize: 14, fontWeight: "700", color: C.green }}>Reporte entregado — En revisión</Text>
+              </Row>
+            </View>
+          )}
         </View>
 
         {/* Right Sidebar */}

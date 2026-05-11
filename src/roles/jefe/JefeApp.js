@@ -3,7 +3,6 @@ import { View, ScrollView, Platform } from "react-native";
 import C from "../../constants/colors";
 import Sidebar from "../../components/Sidebar";
 import TopBar  from "../../components/TopBar";
-import { NotificacionesProvider } from "../../context/NotificacionesContext";
 
 import DashJefe          from "./DashJefe";
 import ValidacionFuentes from "./ValidacionFuentes";
@@ -31,7 +30,7 @@ function JefeAppInner({ usuario, onLogout }) {
     proyectos:            <GestionProyectos />,
     seguimiento:          <Seguimiento />,
     "validacion-fuentes": <ValidacionFuentes onNavigate={setActiveNav} />,
-    notificaciones:       <Notificaciones />,
+    notificaciones:       <Notificaciones onNavigate={setActiveNav} />,
     calendario:           <CalendarioCitas />,
   };
   return (
@@ -48,9 +47,5 @@ function JefeAppInner({ usuario, onLogout }) {
 }
 
 export default function JefeApp({ usuario, onLogout }) {
-  return (
-    <NotificacionesProvider initialUnread={4}>
-      <JefeAppInner usuario={usuario} onLogout={onLogout} />
-    </NotificacionesProvider>
-  );
+  return <JefeAppInner usuario={usuario} onLogout={onLogout} />;
 }

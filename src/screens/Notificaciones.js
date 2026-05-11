@@ -18,6 +18,8 @@ const NOTIFICATIONS = [
     type: "Reporte",
     typeBg: C.blueLight,
     typeColor: C.blue,
+    actionScreen: "seguimiento",
+    actionLabel: "Ir a Seguimiento",
   },
   {
     id: 2,
@@ -31,6 +33,8 @@ const NOTIFICATIONS = [
     type: "Aprobación",
     typeBg: C.greenLight,
     typeColor: C.green,
+    actionScreen: "seguimiento",
+    actionLabel: "Ver retroalimentación",
   },
   {
     id: 3,
@@ -44,6 +48,8 @@ const NOTIFICATIONS = [
     type: "Cita",
     typeBg: C.purpleLight,
     typeColor: C.purple,
+    actionScreen: "calendario",
+    actionLabel: "Ver calendario",
   },
   {
     id: 4,
@@ -86,7 +92,7 @@ const NOTIFICATIONS = [
   },
 ];
 
-export default function Notificaciones() {
+export default function Notificaciones({ onNavigate }) {
   const [localNotifications, setLocalNotifications] = useState(NOTIFICATIONS);
   const [activeTab, setActiveTab] = useState("Todas");
   const {
@@ -364,6 +370,15 @@ export default function Notificaciones() {
                           </Text>
                         </TouchableOpacity>
                       )}
+                      {notif.actionScreen && onNavigate && (
+                          <TouchableOpacity
+                            onPress={() => { markRead(notif.id); onNavigate(notif.actionScreen); }}
+                            style={{ flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, backgroundColor: C.teal }}
+                          >
+                            <Feather name="arrow-right" size={11} color="white" />
+                            <Text style={{ fontSize: 11, color: "white", fontWeight: "700" }}>{notif.actionLabel}</Text>
+                          </TouchableOpacity>
+                        )}
                       <TouchableOpacity
                         onPress={() => dismiss(notif.id)}
                         style={{
