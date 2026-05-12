@@ -6,7 +6,7 @@ const authRoutes  = require("./routes/auth");
 const citasRoutes = require("./routes/citas");
 
 const app  = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3306;
 
 app.use(cors());
 app.use(express.json());
