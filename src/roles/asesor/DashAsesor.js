@@ -1,3 +1,4 @@
+import { getAuthToken } from "../../context/AuthContext";
 import { useState, useEffect, useMemo } from "react";
 import { View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -85,9 +86,13 @@ export default function DashAsesor({ onNavigate }) {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await fetch("http://localhost:3001/api/asesor/dashboard", {
-          headers: { "Content-Type": "application/json" },
-        });
+        const token = getAuthToken(); // Obtiene el token guardado en memoria
+        const headers = { "Content-Type": "application/json" };
+          if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        const res = await fetch("http://localhost:3001/api/asesor/dashboard", { headers });
         const json = await res.json();
         if (!json.ok) {
           setErrorBackend(json.mensaje || "Error al cargar dashboard");
@@ -98,7 +103,7 @@ export default function DashAsesor({ onNavigate }) {
         setErrorBackend("Error de conexión. ¿Backend corriendo en :3001?");
       } finally {
         setLoadingBackend(false);
-      }
+      4}
     };
     fetchDashboard();
   }, []);
