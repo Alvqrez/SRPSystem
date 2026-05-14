@@ -9,8 +9,8 @@ import { NotificacionesProvider } from "./src/context/NotificacionesContext";
 import { ProyectosProvider } from "./src/context/ProyectosContext";
 
 export default function App() {
-  const [screen, setScreen] = useState("login");
-  const [usuario, setUsuario] = useState(null);
+  const [screen, setScreen]         = useState("login");
+  const [usuario, setUsuario]       = useState(null);
   const [loginError, setLoginError] = useState("");
 
   const rolNormalizado = usuario?.rol?.toLowerCase();
@@ -24,12 +24,25 @@ export default function App() {
       });
       const data = await res.json();
       if (!data.ok) {
-        setLoginError(data.mensaje || "Error en login");
+        setLoginError(data.mensaje || "Credenciales incorrectas. Intenta de nuevo.");
         return;
       }
       setLoginError("");
       setAuthToken(data.token);
       setUsuario(data.usuario);
+
+      // Guardar último usuario para el login screen
+      try {
+        localStorage.setItem(
+          "vt_last_user_info",
+          JSON.stringify({
+            id:     data.usuario.id,
+            nombre: data.usuario.nombre,
+            rol:    data.usuario.rol,
+          })
+        );
+      } catch { /* sin localStorage */ }
+
       setScreen("app");
     } catch (err) {
       setLoginError("Error de conexión. ¿El backend está corriendo en :3001?");
@@ -40,6 +53,7 @@ export default function App() {
   const handleLogout = () => {
     setAuthToken(null);
     setUsuario(null);
+    setLoginError("");
     setScreen("login");
   };
 
@@ -48,7 +62,11 @@ export default function App() {
       <ReportesProvider>
         <NotificacionesProvider initialUnread={4}>
           {screen === "login" || !usuario ? (
-            <LoginScreen onLogin={handleLogin} loginError={loginError} />
+            <LoginScreen
+              onLogin={handleLogin}
+              loginError={loginError}
+              onClearError={() => setLoginError("")}
+            />
           ) : rolNormalizado === "residente" ? (
             <ResidenteApp usuario={usuario} onLogout={handleLogout} />
           ) : rolNormalizado === "asesor" ? (
@@ -56,7 +74,11 @@ export default function App() {
           ) : rolNormalizado === "jefe" ? (
             <JefeApp usuario={usuario} onLogout={handleLogout} />
           ) : (
-            <LoginScreen onLogin={handleLogin} loginError={loginError} />
+            <LoginScreen
+              onLogin={handleLogin}
+              loginError={loginError}
+              onClearError={() => setLoginError("")}
+            />
           )}
         </NotificacionesProvider>
       </ReportesProvider>

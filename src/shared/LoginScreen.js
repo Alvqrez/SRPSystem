@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
+  Image,
   TextInput,
   TouchableOpacity,
   Platform,
@@ -13,37 +14,45 @@ import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import Row from "../components/Row";
 
-export default function LoginScreen({ onLogin, loginError = "" }) {
-  const [email, setEmail] = useState("");
+export default function LoginScreen({ onLogin, loginError = "", onClearError }) {
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [focusField, setFocus] = useState(null);
+  const [focusField, setFocus]  = useState(null);
   const [hoverBtn, setHoverBtn] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState("");
   const [showSupport, setSupport] = useState(false);
   const [showPass, setShowPass] = useState(false);
 
-  // Sincronizar error del padre (validación BD)
-  const displayError = loginError || error;
+  // Último usuario logueado (para mostrar su foto/iniciales en lugar del candado)
+  const [lastUser, setLastUser]           = useState(null);
+  const [lastUserPhoto, setLastUserPhoto] = useState(null);
+
+  useEffect(() => {
+    try {
+      const info = localStorage.getItem("vt_last_user_info");
+      if (info) {
+        const parsed = JSON.parse(info);
+        setLastUser(parsed);
+        const foto = localStorage.getItem(`vt_foto_${parsed.id}`);
+        setLastUserPhoto(foto || null);
+      }
+    } catch { /* sin localStorage */ }
+  }, []);
 
   // Animación de entrada
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
+      Animated.timing(fadeAnim,  { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
     ]).start();
   }, []);
+
+  // Error unificado (local + del padre)
+  const displayError = loginError || error;
 
   const handleLogin = () => {
     if (!email.trim()) {
@@ -56,104 +65,99 @@ export default function LoginScreen({ onLogin, loginError = "" }) {
     }
     setError("");
     setLoading(true);
-    // Simula llamada al backend (reemplazar con fetch real)
     setTimeout(() => {
       setLoading(false);
       onLogin(email.trim(), password);
     }, 900);
   };
 
-  const inputStyle = (field) => ({
-    padding: 11,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor:
-      focusField === field ? C.teal : error && !email ? C.red : C.border,
-    fontSize: 13,
-    color: C.text,
-    backgroundColor: focusField === field ? "#FAFFFE" : "#FAFAFA",
-    outlineStyle: "none", // web: quita outline nativo
-    transitionDuration: "150ms", // web: transición suave
-  });
+  // Limpiar errores al escribir
+  const handleEmailChange = (v) => {
+    setEmail(v);
+    setError("");
+    if (onClearError) onClearError();
+  };
+  const handlePasswordChange = (v) => {
+    setPassword(v);
+    setError("");
+    if (onClearError) onClearError();
+  };
+
+  // FIXED: border rojo solo en el campo que está vacío cuando hay error
+  const inputStyle = (field) => {
+    let borderColor = C.border;
+    if (focusField === field) {
+      borderColor = C.teal;
+    } else if (displayError) {
+      if (field === "email"    && !email.trim())    borderColor = C.red;
+      if (field === "password" && !password.trim()) borderColor = C.red;
+    }
+    return {
+      padding: 11,
+      borderRadius: 10,
+      borderWidth: 1.5,
+      borderColor,
+      fontSize: 13,
+      color: C.text,
+      backgroundColor: focusField === field ? "#FAFFFE" : "#FAFAFA",
+      outlineStyle: "none",
+      transitionDuration: "150ms",
+    };
+  };
+
+  // Iniciales del último usuario
+  const lastUserInitials = lastUser?.nombre
+    ? lastUser.nombre.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "??";
 
   return (
-    <View
-      style={{
-        flex: 1,
-        flexDirection: "row",
-        height: Platform.OS === "web" ? "100vh" : "100%",
-      }}
-    >
+    <View style={{
+      flex: 1,
+      flexDirection: "row",
+      height: Platform.OS === "web" ? "100vh" : "100%",
+    }}>
+
       {/* ── Panel izquierdo ── */}
-      <View
-        style={{
-          width: "40%",
-          backgroundColor: C.navy,
-          padding: 48,
-          justifyContent: "center",
-        }}
-      >
+      <View style={{
+        width: "40%",
+        backgroundColor: C.navy,
+        padding: 48,
+        justifyContent: "center",
+      }}>
         <Row style={{ alignItems: "center", gap: 10, marginBottom: 28 }}>
-          <View
-            style={{
-              width: 42,
-              height: 42,
-              backgroundColor: C.teal,
-              borderRadius: 11,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Text style={{ color: "white", fontWeight: "800", fontSize: 16 }}>
-              VT
-            </Text>
+          <View style={{
+            width: 42, height: 42,
+            backgroundColor: C.teal,
+            borderRadius: 11,
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <Text style={{ color: "white", fontWeight: "800", fontSize: 16 }}>VT</Text>
           </View>
-          <Text style={{ color: "white", fontSize: 22, fontWeight: "800" }}>
-            VinculaTec
-          </Text>
+          <Text style={{ color: "white", fontSize: 22, fontWeight: "800" }}>VinculaTec</Text>
         </Row>
-        <Text
-          style={{
-            color: "white",
-            fontSize: 28,
-            fontWeight: "800",
-            lineHeight: 36,
-            marginBottom: 12,
-          }}
-        >
+
+        <Text style={{ color: "white", fontSize: 28, fontWeight: "800", lineHeight: 36, marginBottom: 12 }}>
           Sistema de Seguimiento de{"\n"}Residencias Profesionales
         </Text>
-        <Text
-          style={{
-            color: C.textLight,
-            fontSize: 14,
-            lineHeight: 22,
-            marginBottom: 32,
-          }}
-        >
-          Plataforma institucional para la gestión y monitoreo integral del
-          proceso de residencias.
+        <Text style={{ color: C.textLight, fontSize: 14, lineHeight: 22, marginBottom: 32 }}>
+          Plataforma institucional para la gestión y monitoreo integral del proceso de residencias.
         </Text>
+
         {[
           ["check-circle", "Seguimiento en tiempo real de residentes"],
-          ["file-text", "Reportes parciales y final digitalizados"],
-          ["briefcase", "Gestión de empresas colaboradoras"],
-          ["users", "Comunicación directa asesor-residente"],
+          ["file-text",    "Reportes parciales y final digitalizados"],
+          ["briefcase",    "Gestión de empresas colaboradoras"],
+          ["users",        "Comunicación directa asesor-residente"],
         ].map(([icon, text], i) => (
-          <Row
-            key={i}
-            style={{ alignItems: "center", gap: 10, marginBottom: 14 }}
-          >
-            <View
-              style={{
-                width: 28,
-                height: 28,
-                backgroundColor: "rgba(13,148,136,0.2)",
-                borderRadius: 8,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
+          <Row key={i} style={{ alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <View style={{
+              width: 28, height: 28,
+              backgroundColor: "rgba(13,148,136,0.2)",
+              borderRadius: 8,
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
               <Feather name={icon} size={13} color={C.teal} />
             </View>
             <Text style={{ color: "#CBD5E1", fontSize: 13 }}>{text}</Text>
@@ -161,95 +165,108 @@ export default function LoginScreen({ onLogin, loginError = "" }) {
         ))}
       </View>
 
-      {/* ── Panel derecho ── */}
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: C.bg,
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 32,
-        }}
-      >
-        <Animated.View
-          style={{
-            width: "100%",
-            maxWidth: 420,
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: C.card,
-              borderRadius: 18,
-              padding: 32,
-              borderWidth: 1,
-              borderColor: C.border,
-              shadowColor: "#000",
-              shadowOpacity: 0.07,
-              shadowRadius: 20,
-              shadowOffset: { width: 0, height: 8 },
-              elevation: 4,
-            }}
-          >
-            {/* Ícono lock animado */}
-            <View
-              style={{
-                width: 52,
-                height: 52,
+      {/* ── Panel derecho — centrado vertical y horizontalmente ── */}
+      <View style={{
+        flex: 1,
+        height: Platform.OS === "web" ? "100vh" : "100%",
+        backgroundColor: C.bg,
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 32,
+      }}>
+        <Animated.View style={{
+          width: "100%",
+          maxWidth: 420,
+          alignSelf: "center",
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        }}>
+          <View style={{
+            backgroundColor: C.card,
+            borderRadius: 18,
+            padding: 32,
+            borderWidth: 1,
+            borderColor: C.border,
+            shadowColor: "#000",
+            shadowOpacity: 0.07,
+            shadowRadius: 20,
+            shadowOffset: { width: 0, height: 8 },
+            elevation: 4,
+          }}>
+
+            {/* ── Avatar del último usuario o ícono lock ── */}
+            {lastUser ? (
+              <View style={{ alignItems: "center", marginBottom: 18 }}>
+                {lastUserPhoto ? (
+                  <Image
+                    source={{ uri: lastUserPhoto }}
+                    style={{
+                      width: 64, height: 64, borderRadius: 32,
+                      borderWidth: 3, borderColor: C.teal,
+                    }}
+                  />
+                ) : (
+                  <View style={{
+                    width: 64, height: 64, borderRadius: 32,
+                    backgroundColor: C.teal,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}>
+                    <Text style={{ color: "white", fontWeight: "800", fontSize: 22 }}>
+                      {lastUserInitials}
+                    </Text>
+                  </View>
+                )}
+                <View style={{
+                  marginTop: 8,
+                  backgroundColor: C.tealLighter,
+                  borderRadius: 20,
+                  paddingVertical: 3,
+                  paddingHorizontal: 12,
+                }}>
+                  <Text style={{ fontSize: 11, color: C.teal, fontWeight: "700" }}>
+                    {lastUser.rol || "Usuario"}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <View style={{
+                width: 52, height: 52,
                 borderRadius: 14,
                 backgroundColor: C.tealLight,
                 alignItems: "center",
                 justifyContent: "center",
                 marginBottom: 18,
-              }}
-            >
-              <Feather name="lock" size={22} color={C.teal} />
-            </View>
+              }}>
+                <Feather name="lock" size={22} color={C.teal} />
+              </View>
+            )}
 
-            <Text
-              style={{
-                fontSize: 22,
-                fontWeight: "800",
-                color: C.text,
-                marginBottom: 4,
-              }}
-            >
-              Iniciar Sesión
+            <Text style={{ fontSize: 22, fontWeight: "800", color: C.text, marginBottom: 4 }}>
+              {lastUser ? "¡Bienvenido de vuelta!" : "Iniciar Sesión"}
             </Text>
-            <Text
-              style={{ color: C.textMuted, fontSize: 13, marginBottom: 24 }}
-            >
-              Ingresa tu correo institucional para continuar
+            <Text style={{ color: C.textMuted, fontSize: 13, marginBottom: 24 }}>
+              {lastUser
+                ? lastUser.nombre
+                : "Ingresa tu correo institucional para continuar"}
             </Text>
 
-            {/* Correo */}
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: "700",
-                color: C.textSub,
-                marginBottom: 6,
-                textTransform: "uppercase",
-                letterSpacing: 0.5,
-              }}
-            >
+            {/* ── Correo ── */}
+            <Text style={{
+              fontSize: 12, fontWeight: "700", color: C.textSub,
+              marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5,
+            }}>
               Correo Institucional
             </Text>
             <View style={{ position: "relative", marginBottom: 14 }}>
               <Feather
-                name="mail"
-                size={14}
+                name="mail" size={14}
                 color={focusField === "email" ? C.teal : C.textLight}
                 style={{ position: "absolute", left: 12, top: 13, zIndex: 1 }}
               />
               <TextInput
                 value={email}
-                onChangeText={(v) => {
-                  setEmail(v);
-                  setError("");
-                }}
+                onChangeText={handleEmailChange}
                 placeholder="usuario@itm.edu.mx"
                 placeholderTextColor={C.textLight}
                 keyboardType="email-address"
@@ -260,85 +277,57 @@ export default function LoginScreen({ onLogin, loginError = "" }) {
               />
             </View>
 
-            {/* Contraseña */}
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: "700",
-                color: C.textSub,
-                marginBottom: 6,
-                textTransform: "uppercase",
-                letterSpacing: 0.5,
-              }}
-            >
+            {/* ── Contraseña ── */}
+            <Text style={{
+              fontSize: 12, fontWeight: "700", color: C.textSub,
+              marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5,
+            }}>
               Contraseña
             </Text>
-            <View
-              style={{ position: "relative", marginBottom: error ? 10 : 20 }}
-            >
+            <View style={{ position: "relative", marginBottom: displayError ? 10 : 20 }}>
               <Feather
-                name="key"
-                size={14}
+                name="key" size={14}
                 color={focusField === "password" ? C.teal : C.textLight}
                 style={{ position: "absolute", left: 12, top: 13, zIndex: 1 }}
               />
               <TextInput
                 value={password}
-                onChangeText={(v) => {
-                  setPassword(v);
-                  setError("");
-                }}
+                onChangeText={handlePasswordChange}
                 placeholder="••••••••"
                 placeholderTextColor={C.textLight}
                 secureTextEntry={!showPass}
                 onFocus={() => setFocus("password")}
                 onBlur={() => setFocus(null)}
-                returnKeyType="send" // ← AÑADE ESTO
-                onSubmitEditing={handleLogin} // ← Y ESTO
-                style={[
-                  inputStyle("password"),
-                  { paddingLeft: 36, paddingRight: 40 },
-                ]}
+                returnKeyType="send"
+                onSubmitEditing={handleLogin}
+                style={[inputStyle("password"), { paddingLeft: 36, paddingRight: 40 }]}
               />
               <TouchableOpacity
                 onPress={() => setShowPass(!showPass)}
                 style={{ position: "absolute", right: 12, top: 12 }}
               >
-                <Feather
-                  name={showPass ? "eye-off" : "eye"}
-                  size={15}
-                  color={C.textLight}
-                />
+                <Feather name={showPass ? "eye-off" : "eye"} size={15} color={C.textLight} />
               </TouchableOpacity>
             </View>
 
-            {/* Error */}
+            {/* ── Error ── */}
             {!!displayError && (
-              <Row
-                style={{
-                  alignItems: "center",
-                  gap: 6,
-                  backgroundColor: C.redLight,
-                  borderRadius: 8,
-                  padding: 10,
-                  marginBottom: 14,
-                }}
-              >
+              <Row style={{
+                alignItems: "center",
+                gap: 6,
+                backgroundColor: C.redLight,
+                borderRadius: 8,
+                padding: 10,
+                marginBottom: 14,
+              }}>
                 <Feather name="alert-circle" size={13} color={C.red} />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: C.red,
-                    fontWeight: "600",
-                    flex: 1,
-                  }}
-                >
+                <Text style={{ fontSize: 12, color: C.red, fontWeight: "600", flex: 1 }}>
                   {displayError}
                 </Text>
               </Row>
             )}
 
-            {/* Botón */}
+            {/* ── Botón ── */}
             <TouchableOpacity
               onPress={handleLogin}
               onMouseEnter={() => setHoverBtn(true)}
@@ -363,9 +352,7 @@ export default function LoginScreen({ onLogin, loginError = "" }) {
                 <ActivityIndicator color="white" size="small" />
               ) : (
                 <>
-                  <Text
-                    style={{ color: "white", fontWeight: "800", fontSize: 15 }}
-                  >
+                  <Text style={{ color: "white", fontWeight: "800", fontSize: 15 }}>
                     Acceder a VinculaTec
                   </Text>
                   <Feather name="arrow-right" size={16} color="white" />
@@ -373,17 +360,11 @@ export default function LoginScreen({ onLogin, loginError = "" }) {
               )}
             </TouchableOpacity>
 
-            {/* Soporte */}
+            {/* ── Soporte ── */}
             <Row style={{ justifyContent: "center", marginTop: 18, gap: 4 }}>
-              <Text style={{ color: C.textLight, fontSize: 12 }}>
-                ¿Problemas para ingresar?
-              </Text>
+              <Text style={{ color: C.textLight, fontSize: 12 }}>¿Problemas para ingresar?</Text>
               <TouchableOpacity onPress={() => setSupport(true)}>
-                <Text
-                  style={{ color: C.teal, fontSize: 12, fontWeight: "700" }}
-                >
-                  Contactar soporte
-                </Text>
+                <Text style={{ color: C.teal, fontSize: 12, fontWeight: "700" }}>Contactar soporte</Text>
               </TouchableOpacity>
             </Row>
           </View>
@@ -392,112 +373,66 @@ export default function LoginScreen({ onLogin, loginError = "" }) {
 
       {/* ── Modal Soporte ── */}
       <Modal visible={showSupport} transparent animationType="fade">
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.45)",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <View
-            style={{
-              width: 380,
-              backgroundColor: C.card,
-              borderRadius: 18,
-              padding: 28,
-              borderWidth: 1,
-              borderColor: C.border,
-            }}
-          >
-            <Row
-              style={{
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 20,
-              }}
-            >
+        <View style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.45)",
+          justifyContent: "center",
+          alignItems: "center",
+        }}>
+          <View style={{
+            width: 380,
+            backgroundColor: C.card,
+            borderRadius: 18,
+            padding: 28,
+            borderWidth: 1,
+            borderColor: C.border,
+          }}>
+            <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <Row style={{ alignItems: "center", gap: 10 }}>
-                <View
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 11,
-                    backgroundColor: C.tealLight,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+                <View style={{
+                  width: 38, height: 38, borderRadius: 11,
+                  backgroundColor: C.tealLight,
+                  alignItems: "center", justifyContent: "center",
+                }}>
                   <Feather name="headphones" size={18} color={C.teal} />
                 </View>
-                <Text
-                  style={{ fontSize: 17, fontWeight: "800", color: C.text }}
-                >
-                  Soporte Técnico
-                </Text>
+                <Text style={{ fontSize: 17, fontWeight: "800", color: C.text }}>Soporte Técnico</Text>
               </Row>
               <TouchableOpacity onPress={() => setSupport(false)}>
                 <Feather name="x" size={20} color={C.textMuted} />
               </TouchableOpacity>
             </Row>
-            <Text
-              style={{
-                fontSize: 13,
-                color: C.textMuted,
-                marginBottom: 22,
-                lineHeight: 20,
-              }}
-            >
-              Si tienes problemas para acceder, comunícate con el equipo de
-              soporte del Instituto:
+
+            <Text style={{ fontSize: 13, color: C.textMuted, marginBottom: 22, lineHeight: 20 }}>
+              Si tienes problemas para acceder, comunícate con el equipo de soporte del Instituto:
             </Text>
+
             {[
               ["phone", "Teléfono", "+52 (229) 000-0000   Ext. 100"],
-              ["mail", "Correo", "soporte@itm.edu.mx"],
-              ["clock", "Horario", "Lun–Vie · 8:00 – 18:00 hrs"],
+              ["mail",  "Correo",   "soporte@itm.edu.mx"],
+              ["clock", "Horario",  "Lun–Vie · 8:00 – 18:00 hrs"],
             ].map(([icon, label, value]) => (
-              <Row
-                key={label}
-                style={{
-                  gap: 14,
-                  alignItems: "center",
-                  paddingVertical: 12,
-                  borderBottomWidth: 1,
-                  borderBottomColor: C.borderLight,
-                }}
-              >
-                <View
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 9,
-                    backgroundColor: C.bg,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+              <Row key={label} style={{
+                gap: 14, alignItems: "center",
+                paddingVertical: 12,
+                borderBottomWidth: 1, borderBottomColor: C.borderLight,
+              }}>
+                <View style={{
+                  width: 36, height: 36, borderRadius: 9,
+                  backgroundColor: C.bg,
+                  alignItems: "center", justifyContent: "center",
+                }}>
                   <Feather name={icon} size={16} color={C.teal} />
                 </View>
                 <View>
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: "700",
-                      color: C.textMuted,
-                      textTransform: "uppercase",
-                      letterSpacing: 0.5,
-                    }}
-                  >
+                  <Text style={{ fontSize: 11, fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
                     {label}
                   </Text>
-                  <Text
-                    style={{ fontSize: 13, fontWeight: "600", color: C.text }}
-                  >
-                    {value}
-                  </Text>
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>{value}</Text>
                 </View>
               </Row>
             ))}
+
             <TouchableOpacity
               onPress={() => setSupport(false)}
               style={{
@@ -508,9 +443,7 @@ export default function LoginScreen({ onLogin, loginError = "" }) {
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: "white", fontWeight: "700", fontSize: 14 }}>
-                Entendido
-              </Text>
+              <Text style={{ color: "white", fontWeight: "700", fontSize: 14 }}>Entendido</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -518,4 +451,3 @@ export default function LoginScreen({ onLogin, loginError = "" }) {
     </View>
   );
 }
-// loginError sync handled via prop in handleLogin

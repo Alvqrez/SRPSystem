@@ -9,23 +9,19 @@ import GestionEmpresas    from "../../screens/GestionEmpresas";
 import GestionProyectos   from "../../screens/GestionProyectos";
 import SeguimientoJefe    from "../../screens/SeguimientoJefe";
 import AsignacionJefe     from "../../screens/AsignacionJefe";
-import PropuestasAsesores from "./PropuestasAsesores";
-import ValidacionFuentes  from "./ValidacionFuentes";
 import Utilerias          from "../../screens/Utilerias";
 import Notificaciones     from "../../screens/Notificaciones";
 import CalendarioCitas    from "../../screens/CalendarioCitas";
 
 const NAV = [
-  { id: "dashboard",    label: "Dashboard",    icon: "grid"        },
-  { id: "empresas",     label: "Empresas",     icon: "briefcase"   },
-  { id: "proyectos",    label: "Proyectos",    icon: "folder"      },
-  { id: "asignacion",   label: "Asignación",   icon: "user-plus"   },
-  //{ id: "propuestas",   label: "Propuestas",   icon: "layers"      }, comentado por que no se ocupaba
-  { id: "fuentes",      label: "Validar Fuentes", icon: "check-circle" },
-  { id: "seguimiento",  label: "Seguimiento",  icon: "file-text"   },
-  { id: "notificaciones", label: "Notificaciones", icon: "bell"    },
-  { id: "calendario",   label: "Calendario",   icon: "calendar"    },
-  { id: "utilerias",    label: "Utilerías",    icon: "tool"        },
+  { id: "dashboard",      label: "Dashboard",      icon: "grid"        },
+  { id: "empresas",       label: "Empresas",       icon: "briefcase"   },
+  { id: "proyectos",      label: "Proyectos",      icon: "folder"      },
+  { id: "asignacion",     label: "Asignación",     icon: "user-plus"   },
+  { id: "seguimiento",    label: "Seguimiento",    icon: "file-text"   },
+  { id: "notificaciones", label: "Notificaciones", icon: "bell"        },
+  { id: "calendario",     label: "Calendario",     icon: "calendar"    },
+  { id: "utilerias",      label: "Utilerías",      icon: "tool"        },
 ];
 
 function JefeAppInner({ usuario, onLogout }) {
@@ -50,8 +46,6 @@ function JefeAppInner({ usuario, onLogout }) {
     empresas:       <GestionEmpresas />,
     proyectos:      <GestionProyectos />,
     asignacion:     <AsignacionJefe />,
-    //propuestas:     <PropuestasAsesores onNavigate={setActiveNav} />, comentado por que no se ocupaba
-    fuentes:        <ValidacionFuentes onNavigate={setActiveNav} />,
     seguimiento:    <SeguimientoJefe />,
     notificaciones: <Notificaciones onNavigate={setActiveNav} />,
     calendario:     <CalendarioCitas />,
