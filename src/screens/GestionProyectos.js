@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useState as _useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
@@ -9,111 +8,74 @@ const INITIAL_COLUMNS = [
   {
     id: "propuesto", label: "Propuesto", color: C.blue, bg: C.blueLight,
     cards: [
-      { title: "App de Logística Interna",   company: "AutoParts Globales",   companyIcon: "truck",     student: "C.R", studentBg: "#7C3AED", priority: "Alta",  priorityColor: C.red,   priorityBg: C.redLight,   tags: ["React Native", "Node.js"]       },
-      { title: "Plataforma de E-learning",   company: "EduTech Innovación",   companyIcon: "book-open", student: "M.G", studentBg: "#0891B2", priority: "Media", priorityColor: C.amber, priorityBg: C.amberLight, tags: ["Vue.js", "Firebase"]             },
+      { id: "c1", title: "App de Logística Interna",   company: "AutoParts Globales",   companyIcon: "truck",     student: "C.R", studentBg: "#7C3AED", priority: "Alta",  priorityColor: C.red,   priorityBg: C.redLight,   tags: ["React Native", "Node.js"],      asesor: "Dr. Martínez"  },
+      { id: "c2", title: "Plataforma de E-learning",   company: "EduTech Innovación",   companyIcon: "book-open", student: "M.G", studentBg: "#0891B2", priority: "Media", priorityColor: C.amber, priorityBg: C.amberLight, tags: ["Vue.js", "Firebase"],            asesor: "Dra. López"    },
     ],
   },
   {
     id: "desarrollo", label: "En Desarrollo", color: C.amber, bg: C.amberLight,
     cards: [
-      { title: "Sistema ERP Módulo RRHH",    company: "Grupo Industrial MX",  companyIcon: "tool",      student: "A.L", studentBg: "#059669", priority: "Alta",  priorityColor: C.red,   priorityBg: C.redLight,   tags: ["Python", "Django", "PostgreSQL"] },
-      { title: "Portal de Clientes Web",     company: "Tecnológica del Norte", companyIcon: "cpu",      student: "J.P", studentBg: "#DC2626", priority: "Media", priorityColor: C.amber, priorityBg: C.amberLight, tags: ["React", "GraphQL"]               },
-      { title: "Automatización de Reportes", company: "BioFarma México",       companyIcon: "activity", student: "L.V", studentBg: "#7C3AED", priority: "Baja",  priorityColor: C.green, priorityBg: C.greenLight, tags: ["Python", "Excel API"]            },
+      { id: "c3", title: "Sistema ERP Módulo RRHH",    company: "Grupo Industrial MX",  companyIcon: "tool",      student: "A.L", studentBg: "#059669", priority: "Alta",  priorityColor: C.red,   priorityBg: C.redLight,   tags: ["Python", "Django", "PostgreSQL"], asesor: "Dr. Martínez"  },
+      { id: "c4", title: "Portal de Clientes Web",     company: "Tecnológica del Norte", companyIcon: "cpu",      student: "J.P", studentBg: "#DC2626", priority: "Media", priorityColor: C.amber, priorityBg: C.amberLight, tags: ["React", "GraphQL"],               asesor: "Dr. Herrera"   },
+      { id: "c5", title: "Automatización de Reportes", company: "BioFarma México",       companyIcon: "activity", student: "L.V", studentBg: "#7C3AED", priority: "Baja",  priorityColor: C.green, priorityBg: C.greenLight, tags: ["Python", "Excel API"],            asesor: "Dra. López"    },
     ],
   },
   {
     id: "revision", label: "En Revisión", color: C.purple, bg: C.purpleLight,
     cards: [
-      { title: "App Inventarios Móvil",      company: "Constructora Peña",    companyIcon: "home",      student: "R.M", studentBg: "#0891B2", priority: "Alta",  priorityColor: C.red,   priorityBg: C.redLight,   tags: ["Flutter", "SQLite"]              },
-      { title: "Dashboard BI Financiero",    company: "SoftSolutions SA",     companyIcon: "code",      student: "K.F", studentBg: "#D97706", priority: "Media", priorityColor: C.amber, priorityBg: C.amberLight, tags: ["Power BI", "SQL Server"]         },
+      { id: "c6", title: "App Inventarios Móvil",      company: "Constructora Peña",    companyIcon: "home",      student: "R.M", studentBg: "#0891B2", priority: "Alta",  priorityColor: C.red,   priorityBg: C.redLight,   tags: ["Flutter", "SQLite"],              asesor: "Dr. Martínez"  },
+      { id: "c7", title: "Dashboard BI Financiero",    company: "SoftSolutions SA",     companyIcon: "code",      student: "K.F", studentBg: "#D97706", priority: "Media", priorityColor: C.amber, priorityBg: C.amberLight, tags: ["Power BI", "SQL Server"],         asesor: "Dr. Herrera"   },
     ],
   },
   {
     id: "concluido", label: "Concluido", color: C.green, bg: C.greenLight,
     cards: [
-      { title: "Rediseño UI/UX Tienda",      company: "Tecnológica del Norte", companyIcon: "cpu",      student: "S.H", studentBg: "#059669", priority: "Baja",  priorityColor: C.green, priorityBg: C.greenLight, tags: ["Figma", "React"]                 },
-      { title: "Integración API Pagos",      company: "AutoParts Globales",   companyIcon: "truck",     student: "N.T", studentBg: "#DC2626", priority: "Alta",  priorityColor: C.red,   priorityBg: C.redLight,   tags: ["Stripe", "Node.js"]              },
+      { id: "c8", title: "Rediseño UI/UX Tienda",      company: "Tecnológica del Norte", companyIcon: "cpu",      student: "S.H", studentBg: "#059669", priority: "Baja",  priorityColor: C.green, priorityBg: C.greenLight, tags: ["Figma", "React"],                asesor: "Dra. López"    },
+      { id: "c9", title: "Integración API Pagos",      company: "AutoParts Globales",   companyIcon: "truck",     student: "N.T", studentBg: "#DC2626", priority: "Alta",  priorityColor: C.red,   priorityBg: C.redLight,   tags: ["Stripe", "Node.js"],             asesor: "Dr. Martínez"  },
     ],
   },
 ];
 
-const EMPTY_FORM = { title: "", company: "", student: "", priority: "Media", tags: "", targetCol: "propuesto" };
+const ASESORES = ["Dr. Martínez", "Dra. López", "Dr. Herrera", "Dra. Sánchez", "Dr. Ramírez"];
 
 export default function GestionProyectos() {
-  const [columns, setColumns]     = useState(INITIAL_COLUMNS);
-  const [active, setActive]       = useState(null);
-  const [modalVisible, setModal]  = useState(false);
-  const [menuKey, setMenuKey]     = useState(null); // "colId-index" del card activo
-  const [showFilter, setShowFilter] = useState(false);
+  const [columns, setColumns]         = useState(INITIAL_COLUMNS);
+  const [active, setActive]           = useState(null);
+  const [showFilter, setShowFilter]   = useState(false);
   const [priorityFilter, setPriorityFilter] = useState("Todas");
-  const [form, setForm]           = useState(EMPTY_FORM);
-
-  const priorityOpts = [
-    { label: "Alta",  color: C.red,   bg: C.redLight   },
-    { label: "Media", color: C.amber, bg: C.amberLight },
-    { label: "Baja",  color: C.green, bg: C.greenLight },
-  ];
-
-  const openModal = (colId = "propuesto") => {
-    setForm({ ...EMPTY_FORM, targetCol: colId });
-    setModal(true);
-  };
+  const [editingCard, setEditingCard] = useState(null); // { colId, cardId }
+  const [editForm, setEditForm]       = useState({ title: "", asesor: "" });
 
   const filteredColumns = columns.map((col) => ({
     ...col,
     cards:
       priorityFilter === "Todas"
-        ? col.cards.map((card, index) => ({ ...card, originalIndex: index }))
-        : col.cards
-            .map((card, index) => ({ ...card, originalIndex: index }))
-            .filter((card) => card.priority === priorityFilter),
+        ? col.cards
+        : col.cards.filter((card) => card.priority === priorityFilter),
   }));
 
-  const moveProject = (fromColId, cardIndex) => {
-    const colIndex = columns.findIndex((col) => col.id === fromColId);
-    if (colIndex < 0 || colIndex === columns.length - 1) return;
-
-    setColumns((prev) => {
-      const next = prev.map((col) => ({ ...col, cards: [...col.cards] }));
-      const [card] = next[colIndex].cards.splice(cardIndex, 1);
-      next[colIndex + 1].cards.push(card);
-      return next;
-    });
-    setMenuKey(null);
+  const openEdit = (colId, card) => {
+    setEditingCard({ colId, cardId: card.id });
+    setEditForm({ title: card.title, asesor: card.asesor });
   };
 
-  const deleteProject = (fromColId, cardIndex) => {
+  const saveEdit = () => {
+    if (!editForm.title.trim()) return;
     setColumns((prev) =>
       prev.map((col) =>
-        col.id === fromColId
-          ? { ...col, cards: col.cards.filter((_, index) => index !== cardIndex) }
-          : col,
-      ),
-    );
-    setMenuKey(null);
-  };
-
-  const saveProject = () => {
-    if (!form.title.trim()) return;
-    const pOpt = priorityOpts.find((p) => p.label === form.priority) || priorityOpts[1];
-    const newCard = {
-      title: form.title.trim(),
-      company: form.company.trim() || "Sin empresa",
-      companyIcon: "briefcase",
-      student: (form.student.trim().split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)) || "??",
-      studentBg: C.teal,
-      priority: pOpt.label,
-      priorityColor: pOpt.color,
-      priorityBg: pOpt.bg,
-      tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
-    };
-    setColumns((prev) =>
-      prev.map((col) =>
-        col.id === form.targetCol ? { ...col, cards: [...col.cards, newCard] } : col
+        col.id === editingCard.colId
+          ? {
+              ...col,
+              cards: col.cards.map((c) =>
+                c.id === editingCard.cardId
+                  ? { ...c, title: editForm.title.trim(), asesor: editForm.asesor }
+                  : c
+              ),
+            }
+          : col
       )
     );
-    setModal(false);
-    setForm(EMPTY_FORM);
+    setEditingCard(null);
   };
 
   return (
@@ -128,8 +90,7 @@ export default function GestionProyectos() {
               Tablero Kanban · {columns.reduce((acc, c) => acc + c.cards.length, 0)} proyectos
             </Text>
           </View>
-          <Row style={{ gap: 10 }}>
-            <View style={{ position: "relative" }}>
+          <View style={{ position: "relative" }}>
             <TouchableOpacity onPress={() => setShowFilter(!showFilter)} style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: priorityFilter !== "Todas" ? C.teal : C.border, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 9, backgroundColor: priorityFilter !== "Todas" ? C.tealLighter : C.card }}>
               <Feather name="filter" size={13} color={C.textMuted} />
               <Text style={{ fontSize: 12, color: priorityFilter !== "Todas" ? C.teal : C.textMuted, fontWeight: "600" }}>Filtrar</Text>
@@ -140,10 +101,7 @@ export default function GestionProyectos() {
                 {["Todas", "Alta", "Media", "Baja"].map((option) => (
                   <TouchableOpacity
                     key={option}
-                    onPress={() => {
-                      setPriorityFilter(option);
-                      setShowFilter(false);
-                    }}
+                    onPress={() => { setPriorityFilter(option); setShowFilter(false); }}
                     style={{ paddingVertical: 7 }}
                   >
                     <Text style={{ fontSize: 12, color: priorityFilter === option ? C.teal : C.textSub, fontWeight: priorityFilter === option ? "800" : "600" }}>
@@ -153,15 +111,7 @@ export default function GestionProyectos() {
                 ))}
               </View>
             )}
-            </View>
-            <TouchableOpacity
-              onPress={() => openModal("propuesto")}
-              style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: C.teal, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 9 }}
-            >
-              <Feather name="plus" size={14} color="white" />
-              <Text style={{ color: "white", fontWeight: "700", fontSize: 13 }}>Nuevo Proyecto</Text>
-            </TouchableOpacity>
-          </Row>
+          </View>
         </Row>
 
         {/* Kanban Board */}
@@ -187,28 +137,24 @@ export default function GestionProyectos() {
                 <View style={{ padding: 10, gap: 10 }}>
                   {col.cards.map((card, i) => (
                     <TouchableOpacity
-                      key={i}
+                      key={card.id}
                       onPress={() => setActive(active === `${col.id}-${i}` ? null : `${col.id}-${i}`)}
                       activeOpacity={0.85}
                       style={{ backgroundColor: C.card, borderRadius: 11, borderWidth: 1, borderColor: active === `${col.id}-${i}` ? col.color : C.border, padding: 14 }}
                     >
                       <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                         <Badge text={card.priority} color={card.priorityColor} bg={card.priorityBg} />
-                        <TouchableOpacity onPress={(e) => { e.stopPropagation(); setMenuKey(menuKey === `${col.id}-${card.originalIndex}` ? null : `${col.id}-${card.originalIndex}`); }}>
-                        <Feather name="more-horizontal" size={14} color={C.textLight} />
-                      </TouchableOpacity>
+                        {/* Edit button — solo nombre y asesor */}
+                        <TouchableOpacity
+                          onPress={(e) => { e.stopPropagation(); openEdit(col.id, card); }}
+                          style={{ padding: 4 }}
+                        >
+                          <Feather name="edit-2" size={13} color={C.textLight} />
+                        </TouchableOpacity>
                       </Row>
-                      {menuKey === `${col.id}-${card.originalIndex}` && (
-                        <View style={{ position: "absolute", top: 38, right: 10, backgroundColor: C.card, borderRadius: 8, borderWidth: 1, borderColor: C.border, zIndex: 20, padding: 8, minWidth: 150 }}>
-                          <TouchableOpacity onPress={() => moveProject(col.id, card.originalIndex)} style={{ paddingVertical: 7 }}>
-                            <Text style={{ fontSize: 12, color: C.textSub, fontWeight: "600" }}>Mover a siguiente</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => deleteProject(col.id, card.originalIndex)} style={{ paddingVertical: 7 }}>
-                            <Text style={{ fontSize: 12, color: C.red, fontWeight: "600" }}>Eliminar</Text>
-                          </TouchableOpacity>
-                        </View>
-                      )}
+
                       <Text style={{ fontSize: 13, fontWeight: "700", color: C.text, marginBottom: 10, lineHeight: 18 }}>{card.title}</Text>
+
                       <Row style={{ flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
                         {card.tags.map((tag, ti) => (
                           <View key={ti} style={{ backgroundColor: C.bg, borderRadius: 5, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: C.border }}>
@@ -216,6 +162,7 @@ export default function GestionProyectos() {
                           </View>
                         ))}
                       </Row>
+
                       <Row style={{ justifyContent: "space-between", alignItems: "center" }}>
                         <Row style={{ alignItems: "center", gap: 6 }}>
                           <View style={{ width: 22, height: 22, borderRadius: 6, backgroundColor: C.tealLight, alignItems: "center", justifyContent: "center" }}>
@@ -227,17 +174,14 @@ export default function GestionProyectos() {
                           <Text style={{ fontSize: 9, color: "white", fontWeight: "800" }}>{card.student}</Text>
                         </View>
                       </Row>
+
+                      {/* Asesor asignado */}
+                      <Row style={{ alignItems: "center", gap: 5, marginTop: 10, backgroundColor: C.bg, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 5 }}>
+                        <Feather name="user-check" size={11} color={C.teal} />
+                        <Text style={{ fontSize: 11, color: C.teal, fontWeight: "600" }}>{card.asesor}</Text>
+                      </Row>
                     </TouchableOpacity>
                   ))}
-
-                  {/* Botón Agregar en columna */}
-                  <TouchableOpacity
-                    onPress={() => openModal(col.id)}
-                    style={{ borderWidth: 1.5, borderColor: C.border, borderStyle: "dashed", borderRadius: 10, padding: 10, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 6 }}
-                  >
-                    <Feather name="plus" size={13} color={C.textLight} />
-                    <Text style={{ fontSize: 12, color: C.textLight, fontWeight: "600" }}>Agregar</Text>
-                  </TouchableOpacity>
                 </View>
               </View>
             ))}
@@ -245,84 +189,67 @@ export default function GestionProyectos() {
         </ScrollView>
       </ScrollView>
 
-      {/* ── Modal Nuevo Proyecto ── */}
-      <Modal visible={modalVisible} transparent animationType="fade">
+      {/* Modal Editar — solo nombre del proyecto y asesor */}
+      <Modal visible={!!editingCard} transparent animationType="fade">
         <Pressable
           style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", alignItems: "center" }}
-          onPress={() => setModal(false)}
+          onPress={() => setEditingCard(null)}
         >
           <Pressable
-            style={{ width: 480, backgroundColor: C.card, borderRadius: 16, padding: 28, borderWidth: 1, borderColor: C.border }}
+            style={{ width: 420, backgroundColor: C.card, borderRadius: 16, padding: 28, borderWidth: 1, borderColor: C.border }}
             onPress={() => {}}
           >
-            {/* Modal Header */}
             <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-              <Text style={{ fontSize: 18, fontWeight: "800", color: C.text }}>Nuevo Proyecto</Text>
-              <TouchableOpacity onPress={() => setModal(false)}>
+              <View>
+                <Text style={{ fontSize: 18, fontWeight: "800", color: C.text }}>Editar Proyecto</Text>
+                <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>Modifica el nombre del proyecto o el asesor asignado</Text>
+              </View>
+              <TouchableOpacity onPress={() => setEditingCard(null)}>
                 <Feather name="x" size={20} color={C.textMuted} />
               </TouchableOpacity>
             </Row>
 
-            {/* Columna destino */}
-            <Text style={{ fontSize: 12, fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Columna</Text>
-            <Row style={{ gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
-              {INITIAL_COLUMNS.map((col) => (
-                <TouchableOpacity
-                  key={col.id}
-                  onPress={() => setForm({ ...form, targetCol: col.id })}
-                  style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5, borderColor: form.targetCol === col.id ? col.color : C.border, backgroundColor: form.targetCol === col.id ? col.bg : "transparent" }}
-                >
-                  <Text style={{ fontSize: 12, fontWeight: "700", color: form.targetCol === col.id ? col.color : C.textMuted }}>{col.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </Row>
+            {/* Nombre del proyecto */}
+            <View style={{ marginBottom: 18 }}>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Nombre del Proyecto</Text>
+              <TextInput
+                value={editForm.title}
+                onChangeText={(v) => setEditForm({ ...editForm, title: v })}
+                placeholder="Nombre del proyecto"
+                placeholderTextColor={C.textLight}
+                style={{ padding: 11, borderRadius: 8, borderWidth: 1, borderColor: C.border, fontSize: 14, color: C.text, backgroundColor: "#FAFAFA" }}
+              />
+            </View>
 
-            {/* Título */}
-            {[
-              ["Título del proyecto *", "title",   "Ej: Sistema de Inventarios", false],
-              ["Empresa",              "company", "Ej: Telmex",                  false],
-              ["Residente",            "student", "Ej: Ana García",              false],
-              ["Tecnologías (separadas por coma)", "tags", "Ej: React, Node.js, MySQL", false],
-            ].map(([label, key, ph]) => (
-              <View key={key} style={{ marginBottom: 14 }}>
-                <Text style={{ fontSize: 12, fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>{label}</Text>
-                <TextInput
-                  value={form[key]}
-                  onChangeText={(v) => setForm({ ...form, [key]: v })}
-                  placeholder={ph}
-                  placeholderTextColor={C.textLight}
-                  style={{ padding: 10, borderRadius: 8, borderWidth: 1, borderColor: C.border, fontSize: 13, color: C.text, backgroundColor: "#FAFAFA" }}
-                />
-              </View>
-            ))}
-
-            {/* Prioridad */}
-            <Text style={{ fontSize: 12, fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Prioridad</Text>
-            <Row style={{ gap: 8, marginBottom: 22 }}>
-              {priorityOpts.map(({ label, color, bg }) => (
-                <TouchableOpacity
-                  key={label}
-                  onPress={() => setForm({ ...form, priority: label })}
-                  style={{ flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: form.priority === label ? color : C.border, backgroundColor: form.priority === label ? bg : "transparent", alignItems: "center" }}
-                >
-                  <Text style={{ fontSize: 13, fontWeight: "700", color: form.priority === label ? color : C.textMuted }}>{label}</Text>
-                </TouchableOpacity>
-              ))}
-            </Row>
+            {/* Asesor asignado */}
+            <View style={{ marginBottom: 22 }}>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Asesor Asignado</Text>
+              <Row style={{ flexWrap: "wrap", gap: 8 }}>
+                {ASESORES.map((a) => (
+                  <TouchableOpacity
+                    key={a}
+                    onPress={() => setEditForm({ ...editForm, asesor: a })}
+                    style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: editForm.asesor === a ? C.teal : C.border, backgroundColor: editForm.asesor === a ? C.tealLight : "transparent" }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: editForm.asesor === a ? C.teal : C.textMuted }}>{a}</Text>
+                  </TouchableOpacity>
+                ))}
+              </Row>
+            </View>
 
             {/* Botones */}
             <Row style={{ gap: 10 }}>
               <TouchableOpacity
-                onPress={() => setModal(false)}
+                onPress={() => setEditingCard(null)}
                 style={{ flex: 1, paddingVertical: 11, borderRadius: 9, borderWidth: 1, borderColor: C.border, alignItems: "center" }}
               >
                 <Text style={{ fontSize: 14, fontWeight: "600", color: C.textMuted }}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={saveProject}
+                onPress={saveEdit}
                 style={{ flex: 2, paddingVertical: 11, borderRadius: 9, backgroundColor: C.teal, alignItems: "center" }}
               >
-                <Text style={{ fontSize: 14, fontWeight: "700", color: "white" }}>Crear Proyecto</Text>
+                <Text style={{ fontSize: 14, fontWeight: "700", color: "white" }}>Guardar Cambios</Text>
               </TouchableOpacity>
             </Row>
           </Pressable>

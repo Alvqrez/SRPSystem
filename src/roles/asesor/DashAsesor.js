@@ -82,13 +82,12 @@ export default function DashAsesor({ onNavigate }) {
   const [loadingBackend, setLoadingBackend] = useState(true);
   const [errorBackend, setErrorBackend] = useState(null);
 
-  // Carga inicial desde backend (sin token por ahora, luego protegemos)
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const token = getAuthToken(); // Obtiene el token guardado en memoria
+        const token = getAuthToken();
         const headers = { "Content-Type": "application/json" };
-          if (token) {
+        if (token) {
           headers.Authorization = `Bearer ${token}`;
         }
 
@@ -103,18 +102,17 @@ export default function DashAsesor({ onNavigate }) {
         setErrorBackend("Error de conexión. ¿Backend corriendo en :3001?");
       } finally {
         setLoadingBackend(false);
-      4}
+      }
     };
     fetchDashboard();
   }, []);
 
-  // Datos derivados del contexto (se mantienen igual que en tu versión original)
   const allResidentes = useMemo(() => {
     const res = [];
     proyectos.forEach((p) => {
       p.residentes.forEach((r) => {
         if (!res.find((x) => x.nombre === r.nombre)) {
-          res.push({ ...r, proyecto: p.title, empresa: p.company, proyectoId: p.id, horas: p.horasDocumentadas, horasTotales: p.horasTotales, fase: p.phase });
+          res.push({ ...r, proyecto: p.title, empresa: p.company, proyectoId: p.id, fase: p.phase });
         }
       });
     });
@@ -137,7 +135,6 @@ export default function DashAsesor({ onNavigate }) {
     return meets;
   }, [proyectos]);
 
-  // Reuniones próximas combinadas: si no hay datos del contexto, usamos las citas reales
   const reunionesBackend = useMemo(() => {
     return backendData.proximasCitas.map((cita) => ({
       titulo: cita.motivo,
@@ -150,19 +147,19 @@ export default function DashAsesor({ onNavigate }) {
 
   const proximasReuniones = allReuniones.length > 0 ? allReuniones : reunionesBackend;
 
-  // Stats (combinamos backend + contexto)
   const residentesActivos = backendData.totalResidentes || allResidentes.length;
-  const proyectosActivos = backendData.proyectosActivos || proyectos.length;
-  const reportesPendientes = backendData.reportesPendientes || allReportes.filter((r) => r.status === "En Revisión" || r.status === "Pendiente Corrección").length;
-  const reportesAprobados = allReportes.filter((r) => r.status === "Aprobado").length;
-  const reportesRechazados = allReportes.filter((r) => r.status === "Rechazado" || r.status === "Pendiente Corrección").length;
-  const reportesTotal = allReportes.length;
-  const promedioAprobacion = reportesTotal > 0 ? Math.round((reportesAprobados / reportesTotal) * 100) : 0;
+  const proyectosActivos  = backendData.proyectosActivos || proyectos.length;
+  const reportesPendientes = backendData.reportesPendientes ||
+    allReportes.filter((r) => r.status === "Pendiente").length;
+  const reportesAceptados  = allReportes.filter((r) => r.status === "Aceptado").length;
+  const reportesPorCorregir = allReportes.filter((r) => r.status === "Por corregir").length;
+  const reportesTotal      = allReportes.length;
+  const promedioAprobacion = reportesTotal > 0 ? Math.round((reportesAceptados / reportesTotal) * 100) : 0;
 
   const hoy = new Date();
   const alertasRezagados = useMemo(() => {
     return allReportes.filter((r) => {
-      if (r.status !== "En Revisión") return false;
+      if (r.status !== "Pendiente") return false;
       const fechaEnvio = new Date(r.fecha);
       const diasEnRevision = Math.floor((hoy - fechaEnvio) / (1000 * 60 * 60 * 24));
       return diasEnRevision > 5;
@@ -170,9 +167,9 @@ export default function DashAsesor({ onNavigate }) {
   }, [allReportes]);
 
   const pieData = [
-    { label: "Aprobados", value: reportesAprobados, color: C.green },
-    { label: "Pendientes", value: reportesPendientes, color: C.amber },
-    { label: "Rechazados", value: reportesRechazados, color: C.red },
+    { label: "Aceptados",    value: reportesAceptados,   color: C.green },
+    { label: "Pendientes",   value: reportesPendientes,  color: C.amber },
+    { label: "Por corregir", value: reportesPorCorregir, color: C.red   },
   ];
 
   const searchResults = useMemo(() => {
@@ -205,9 +202,9 @@ export default function DashAsesor({ onNavigate }) {
     return allReportes;
   }, [periodoFilter, allReportes]);
 
-  const filteredAprobados = filteredReportes.filter((r) => r.status === "Aprobado").length;
-  const filteredRechazados = filteredReportes.filter((r) => r.status === "Rechazado" || r.status === "Pendiente Corrección").length;
-  const filteredPendientes = filteredReportes.filter((r) => r.status === "En Revisión").length;
+  const filteredAceptados    = filteredReportes.filter((r) => r.status === "Aceptado").length;
+  const filteredPorCorregir  = filteredReportes.filter((r) => r.status === "Por corregir").length;
+  const filteredPendientes   = filteredReportes.filter((r) => r.status === "Pendiente").length;
 
   if (loadingBackend) {
     return (
@@ -264,10 +261,10 @@ export default function DashAsesor({ onNavigate }) {
       <SectionTitle title="Dashboard Asesor" />
 
       <Row style={{ gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
-        <StatCard label="Residentes Activos" value={String(residentesActivos)} sub={`${proyectosActivos} proyectos`} icon="users" iconBg={C.tealLight} iconColor={C.teal} trend="+2" trendUp />
-        <StatCard label="Reportes Pendientes" value={String(reportesPendientes)} sub="Por revisar" icon="file-text" iconBg={C.amberLight} iconColor={C.amber} />
-        <StatCard label="Tasa Aprobación" value={`${promedioAprobacion}%`} sub="Global" icon="trending-up" iconBg={C.greenLight} iconColor={C.green} trend="+3%" trendUp />
-        <StatCard label="Próx. Reuniones" value={String(proximasReuniones.length)} sub="Próximos 5 días" icon="calendar" iconBg={C.blueLight} iconColor={C.blue} />
+        <StatCard label="Residentes Activos"  value={String(residentesActivos)} sub={`${proyectosActivos} proyectos`} icon="users"        iconBg={C.tealLight}  iconColor={C.teal}  trend="+2" trendUp />
+        <StatCard label="Reportes Pendientes" value={String(reportesPendientes)} sub="Por revisar"                  icon="file-text"     iconBg={C.amberLight} iconColor={C.amber} />
+        <StatCard label="Tasa Aceptación"     value={`${promedioAprobacion}%`}  sub="Global"                       icon="trending-up"   iconBg={C.greenLight} iconColor={C.green} trend="+3%" trendUp />
+        <StatCard label="Próx. Reuniones"     value={String(proximasReuniones.length)} sub="Próximos 5 días"       icon="calendar"      iconBg={C.blueLight}  iconColor={C.blue}  />
       </Row>
 
       <Row style={{ gap: 20, marginBottom: 20, alignItems: "flex-start" }}>
@@ -287,22 +284,22 @@ export default function DashAsesor({ onNavigate }) {
             </Row>
           </Row>
           <PieChart data={[
-            { label: "Aprobados", value: filteredAprobados, color: C.green },
-            { label: "Pendientes", value: filteredPendientes, color: C.amber },
-            { label: "Rechazados", value: filteredRechazados, color: C.red },
+            { label: "Aceptados",    value: filteredAceptados,   color: C.green },
+            { label: "Pendientes",   value: filteredPendientes,  color: C.amber },
+            { label: "Por corregir", value: filteredPorCorregir, color: C.red   },
           ]} />
           <View style={{ marginTop: 16, gap: 8 }}>
             <Row style={{ alignItems: "center", gap: 8 }}>
-              <View style={{ flex: filteredAprobados || 1, height: 8, borderRadius: 4, backgroundColor: C.green }} />
-              <Text style={{ fontSize: 11, color: C.textMuted, width: 20 }}>{filteredAprobados}</Text>
+              <View style={{ flex: filteredAceptados   || 1, height: 8, borderRadius: 4, backgroundColor: C.green }} />
+              <Text style={{ fontSize: 11, color: C.textMuted, width: 20 }}>{filteredAceptados}</Text>
             </Row>
             <Row style={{ alignItems: "center", gap: 8 }}>
-              <View style={{ flex: filteredPendientes || 1, height: 8, borderRadius: 4, backgroundColor: C.amber }} />
+              <View style={{ flex: filteredPendientes  || 1, height: 8, borderRadius: 4, backgroundColor: C.amber }} />
               <Text style={{ fontSize: 11, color: C.textMuted, width: 20 }}>{filteredPendientes}</Text>
             </Row>
             <Row style={{ alignItems: "center", gap: 8 }}>
-              <View style={{ flex: filteredRechazados || 1, height: 8, borderRadius: 4, backgroundColor: C.red }} />
-              <Text style={{ fontSize: 11, color: C.textMuted, width: 20 }}>{filteredRechazados}</Text>
+              <View style={{ flex: filteredPorCorregir || 1, height: 8, borderRadius: 4, backgroundColor: C.red }} />
+              <Text style={{ fontSize: 11, color: C.textMuted, width: 20 }}>{filteredPorCorregir}</Text>
             </Row>
           </View>
         </Card>
@@ -350,12 +347,9 @@ export default function DashAsesor({ onNavigate }) {
         <Row style={{ paddingHorizontal: 12, paddingVertical: 10, backgroundColor: C.bg, borderRadius: 8, marginBottom: 4 }}>
           <Text style={{ flex: 2, fontSize: 12, fontWeight: "600", color: C.textMuted }}>RESIDENTE</Text>
           <Text style={{ flex: 2, fontSize: 12, fontWeight: "600", color: C.textMuted }}>PROYECTO</Text>
-          <Text style={{ flex: 1, fontSize: 12, fontWeight: "600", color: C.textMuted, textAlign: "center" }}>HORAS</Text>
-          <Text style={{ flex: 2, fontSize: 12, fontWeight: "600", color: C.textMuted, textAlign: "center" }}>PROGRESO</Text>
           <Text style={{ flex: 1, fontSize: 12, fontWeight: "600", color: C.textMuted, textAlign: "center" }}>FASE</Text>
         </Row>
         {allResidentes.map((r, i) => {
-          const pct = r.horasTotales > 0 ? Math.round((r.horas / r.horasTotales) * 100) : 0;
           const faseLabel = { propuesto: "Propuesto", desarrollo: "Desarrollo", revision: "Revisión", concluido: "Concluido" }[r.fase] || r.fase;
           const faseColor = { propuesto: C.blue, desarrollo: C.amber, revision: C.purple, concluido: C.green }[r.fase] || C.textMuted;
           return (
@@ -373,11 +367,6 @@ export default function DashAsesor({ onNavigate }) {
                 <Text style={{ fontSize: 13, color: C.text }}>{r.proyecto}</Text>
                 <Text style={{ fontSize: 11, color: C.textMuted }}>{r.empresa}</Text>
               </View>
-              <Text style={{ flex: 1, fontSize: 12, color: C.textMuted, textAlign: "center" }}>{r.horas}/{r.horasTotales}</Text>
-              <View style={{ flex: 2, paddingHorizontal: 8 }}>
-                <ProgressBar pct={pct} color={C.teal} />
-                <Text style={{ fontSize: 10, color: C.textMuted, marginTop: 3, textAlign: "center" }}>{pct}%</Text>
-              </View>
               <View style={{ flex: 1, alignItems: "center" }}>
                 <Badge text={faseLabel} color={faseColor} bg={faseColor + "22"} />
               </View>
@@ -393,7 +382,7 @@ export default function DashAsesor({ onNavigate }) {
             <Badge text={String(reportesPendientes)} color={C.amber} bg={C.amberLight} />
           </Row>
           <View style={{ gap: 10 }}>
-            {allReportes.filter((r) => r.status === "En Revisión").slice(0, 5).map((r, i) => (
+            {allReportes.filter((r) => r.status === "Pendiente").slice(0, 5).map((r, i) => (
               <Row key={i} style={{ gap: 10, alignItems: "flex-start", backgroundColor: C.bg, borderRadius: 8, padding: 10 }}>
                 <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.amber, marginTop: 5 }} />
                 <View style={{ flex: 1 }}>
@@ -456,11 +445,11 @@ export default function DashAsesor({ onNavigate }) {
               <View key={i} style={{ backgroundColor: C.bg, borderRadius: 10, padding: 12 }}>
                 <Row style={{ justifyContent: "space-between", marginBottom: 6 }}>
                   <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>{r.residente} — {r.titulo}</Text>
-                  <Badge text={r.status} color={r.status === "Aprobado" ? C.green : C.amber} bg={r.status === "Aprobado" ? C.greenLight : C.amberLight} />
+                  <Badge text={r.status} color={r.status === "Aceptado" ? C.green : r.status === "Por corregir" ? C.red : C.amber} bg={r.status === "Aceptado" ? C.greenLight : r.status === "Por corregir" ? C.redLight : C.amberLight} />
                 </Row>
                 {r.historial.map((h, hi) => (
                   <Row key={hi} style={{ alignItems: "center", gap: 6, marginTop: 4 }}>
-                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: h.status === "Aprobado" ? C.green : C.red }} />
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: h.status === "Aceptado" ? C.green : C.red }} />
                     <Text style={{ fontSize: 11, color: C.textMuted }}>{h.fecha} — {h.status}: {h.comentario}</Text>
                   </Row>
                 ))}

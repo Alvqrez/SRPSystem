@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Alert, View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
-import { Row, Card, Badge, ProgressBar } from "../components";
+import { Row, Card, Badge } from "../components";
 import { useReportes } from "../context/ReportesContext";
 
 const PARCIALES = [
@@ -13,7 +13,6 @@ const PARCIALES = [
 
 const EMPTY_FORM = {
   actividadesRealizadas: "",
-  horasReportadas:       "",
   avanceObjetivos:       "",
   problemas:             "",
   observaciones:         "",
@@ -55,25 +54,21 @@ export default function ReportesParciales() {
 
   const submitReport = () => {
     const r = parcialReport(activeTab);
-    if (r?.status === "Aprobado") {
-      Alert.alert("Ya aprobado", "Este reporte ya fue aprobado por tu asesor.");
+    if (r?.status === "Aceptado") {
+      Alert.alert("Ya aceptado", "Este reporte ya fue aceptado por tu asesor.");
       return;
     }
-    if (r?.status === "En Revisión") {
-      Alert.alert("En revisión", "Este reporte ya fue enviado y está en revisión.");
+    if (r?.status === "Pendiente" && r?.submitted) {
+      Alert.alert("En revisión", "Este reporte ya fue enviado y está pendiente de revisión.");
       return;
     }
     if (!form.actividadesRealizadas.trim()) {
       Alert.alert("Falta información", "Describe las actividades realizadas.");
       return;
     }
-    if (!form.horasReportadas.trim() || isNaN(Number(form.horasReportadas))) {
-      Alert.alert("Falta información", "Ingresa las horas reportadas (número).");
-      return;
-    }
 
     updateReport(activeTab, {
-      status:    "En Revisión",
+      status:    "Pendiente",
       submitted: todayStr(),
       feedback:  null,
     });
@@ -91,7 +86,7 @@ export default function ReportesParciales() {
           Reportes Parciales bloqueados
         </Text>
         <Text style={{ fontSize:14, color:C.textMuted, textAlign:"center", lineHeight:22, maxWidth:380 }}>
-          Tu Reporte Preliminar debe ser aprobado por tu asesor antes de poder entregar los reportes parciales.
+          Tu Reporte Preliminar debe ser aceptado por tu asesor antes de poder entregar los reportes parciales.
         </Text>
       </View>
     );
@@ -99,7 +94,7 @@ export default function ReportesParciales() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   const activeReport = parcialReport(activeTab);
-  const isLocked     = activeReport?.status === "Aprobado" || activeReport?.status === "En Revisión";
+  const isLocked     = activeReport?.status === "Aceptado" || (activeReport?.status === "Pendiente" && activeReport?.submitted);
 
   return (
     <ScrollView style={{ flex:1, backgroundColor:C.bg }} contentContainerStyle={{ padding:24 }}>
@@ -115,9 +110,9 @@ export default function ReportesParciales() {
           const rep    = parcialReport(p.id);
           const active = activeTab === p.id;
           const statusColor = {
-            "Aprobado":     C.green,
-            "En Revisión":  C.amber,
-            "Rechazado":    C.red,
+            "Aceptado":     C.green,
+            "Pendiente":    C.amber,
+            "Por corregir": C.red,
           }[rep?.status] || C.textMuted;
 
           return (
@@ -144,26 +139,33 @@ export default function ReportesParciales() {
       </Row>
 
       {/* Estado del reporte activo */}
-      {activeReport?.status && activeReport.status !== "Pendiente" && (
-        <Card style={{ marginBottom:16, backgroundColor: activeReport.status === "Aprobado" ? C.greenLight : activeReport.status === "Rechazado" ? C.redLight : C.amberLight, borderWidth:0 }}>
+      {activeReport?.status && !(activeReport.status === "Pendiente" && !activeReport.submitted) && (
+        <Card style={{ marginBottom:16,
+          backgroundColor:
+            activeReport.status === "Aceptado" ? C.greenLight :
+            activeReport.status === "Por corregir" ? C.redLight : C.amberLight,
+          borderWidth:0 }}>
           <Row style={{ alignItems:"center", gap:12 }}>
             <Feather
-              name={ activeReport.status === "Aprobado" ? "check-circle" : activeReport.status === "Rechazado" ? "x-circle" : "clock" }
+              name={
+                activeReport.status === "Aceptado" ? "check-circle" :
+                activeReport.status === "Por corregir" ? "x-circle" : "clock"
+              }
               size={22}
-              color={ activeReport.status === "Aprobado" ? C.green : activeReport.status === "Rechazado" ? C.red : C.amber }
+              color={
+                activeReport.status === "Aceptado" ? C.green :
+                activeReport.status === "Por corregir" ? C.red : C.amber
+              }
             />
             <View style={{ flex:1 }}>
               <Text style={{ fontSize:14, fontWeight:"800", color:C.text }}>
-                {activeReport.status === "Aprobado" ? "Reporte aprobado" : activeReport.status === "Rechazado" ? "Reporte rechazado" : "En revisión por tu asesor"}
+                {activeReport.status === "Aceptado" ? "Reporte aceptado" :
+                 activeReport.status === "Por corregir" ? "Se requieren correcciones" :
+                 "En revisión por tu asesor"}
               </Text>
               {activeReport.feedback && (
                 <Text style={{ fontSize:12, color:C.textSub, marginTop:4, lineHeight:18 }}>
                   {activeReport.feedback}
-                </Text>
-              )}
-              {activeReport.score !== null && activeReport.score !== undefined && (
-                <Text style={{ fontSize:13, fontWeight:"700", color:C.green, marginTop:4 }}>
-                  Calificación: {activeReport.score}/100
                 </Text>
               )}
             </View>
@@ -180,10 +182,6 @@ export default function ReportesParciales() {
         <Field label="Actividades realizadas *" placeholder="Describe las actividades y tareas completadas durante el periodo..."
           value={form.actividadesRealizadas} onChangeText={(v) => updateForm("actividadesRealizadas", v)}
           multiline editable={!isLocked} />
-
-        <Field label="Horas reportadas *" placeholder="Ej. 120"
-          value={form.horasReportadas} onChangeText={(v) => updateForm("horasReportadas", v)}
-          keyboardType="numeric" editable={!isLocked} />
 
         <Field label="Avance en objetivos" placeholder="¿Qué porcentaje de los objetivos se cumplió? Describe brevemente..."
           value={form.avanceObjetivos} onChangeText={(v) => updateForm("avanceObjetivos", v)}

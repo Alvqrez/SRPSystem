@@ -9,11 +9,10 @@ import { useNotificaciones } from "../context/NotificacionesContext";
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const statusStyle = (status) =>
   ({
-    Aprobado:      { color: C.green,    bg: C.greenLight  },
-    "En Revisión": { color: C.amber,    bg: C.amberLight  },
-    Rechazado:     { color: C.red,      bg: C.redLight    },
-    Entregado:     { color: C.blue,     bg: C.blueLight   },
-    Pendiente:     { color: C.textMuted, bg: C.bg         },
+    Aceptado:       { color: C.green,    bg: C.greenLight  },
+    "Por corregir": { color: C.red,      bg: C.redLight    },
+    Pendiente:      { color: C.amber,    bg: C.amberLight  },
+    Entregado:      { color: C.blue,     bg: C.blueLight   },
   }[status] || { color: C.textMuted, bg: C.bg });
 
 const todayStr = () => {
@@ -32,18 +31,13 @@ export default function Seguimiento() {
   const parciales  = reports?.filter((r) => typeof r.id === "number") || [];
   const final      = reports?.find((r) => r.id === "final");
 
-  const parcialesAprobados = parciales.filter((r) => r.status === "Aprobado").length;
-  const promedio = parciales.filter((r) => r.score !== null).length
-    ? (parciales.reduce((s, r) => s + (r.score || 0), 0) /
-       parciales.filter((r) => r.score !== null).length).toFixed(1)
-    : "—";
+  const parcialesAceptados = parciales.filter((r) => r.status === "Aceptado").length;
 
   // ── Actions ───────────────────────────────────────────────────────────────
   const deliverReport = (id) => {
     const report = reports?.find((r) => r.id === id);
-    updateReport(id, { status: "En Revisión", submitted: todayStr() });
+    updateReport(id, { status: "Pendiente", submitted: todayStr() });
 
-    // Notificar al asesor
     if (setNotifications) {
       setNotifications((prev) => [{
         id: Date.now(),
@@ -64,14 +58,14 @@ export default function Seguimiento() {
       }, ...(prev || [])]);
     }
 
-    Alert.alert("Reporte entregado", "Queda en revisión por tu asesor.");
+    Alert.alert("Reporte entregado", "Queda pendiente de revisión por tu asesor.");
   };
 
   const exportReports = () => {
     const rows = (reports || [])
-      .map((r) => `<tr><td>${r.title}</td><td>${r.status}</td><td>${r.score ?? "—"}</td><td>${r.submitted ?? "Sin entregar"}</td><td>${r.reviewer}</td></tr>`)
+      .map((r) => `<tr><td>${r.title}</td><td>${r.status}</td><td>${r.submitted ?? "Sin entregar"}</td><td>${r.reviewer}</td></tr>`)
       .join("");
-    const html = `<html><head><title>Seguimiento</title><style>body{font-family:Arial;padding:32px}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{border:1px solid #CBD5E1;padding:10px}th{background:#F1F5F9}</style></head><body><h1>Seguimiento de Reportes</h1><table><thead><tr><th>Reporte</th><th>Estado</th><th>Calificación</th><th>Envío</th><th>Revisor</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+    const html = `<html><head><title>Seguimiento</title><style>body{font-family:Arial;padding:32px}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{border:1px solid #CBD5E1;padding:10px}th{background:#F1F5F9}</style></head><body><h1>Seguimiento de Reportes</h1><table><thead><tr><th>Reporte</th><th>Estado</th><th>Envío</th><th>Revisor</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
     if (globalThis?.window?.open) {
       const win = globalThis.window.open("", "_blank");
       if (!win) { Alert.alert("Exportar", "Permite ventanas emergentes."); return; }
@@ -85,6 +79,7 @@ export default function Seguimiento() {
   const ReportCard = ({ report, canDeliver = false }) => {
     const isOpen = selected === report.id;
     const { color, bg } = statusStyle(report.status);
+    const statusIcon = report.status === "Aceptado" ? "check" : report.status === "Por corregir" ? "x" : "clock";
     return (
       <Card style={{ padding: 0, overflow: "hidden" }}>
         <TouchableOpacity
@@ -95,7 +90,7 @@ export default function Seguimiento() {
           <Row style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
             <Row style={{ flex: 1, gap: 12, alignItems: "flex-start" }}>
               <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}>
-                <Feather name={report.status === "Aprobado" ? "check" : report.status === "En Revisión" ? "clock" : report.status === "Rechazado" ? "x" : "minus"} size={16} color={color} />
+                <Feather name={statusIcon} size={16} color={color} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 14, fontWeight: "700", color: C.text }}>{report.title}</Text>
@@ -109,11 +104,6 @@ export default function Seguimiento() {
               </View>
             </Row>
             <Row style={{ alignItems: "center", gap: 10 }}>
-              {report.score !== null && (
-                <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: report.score >= 90 ? C.greenLight : C.amberLight }}>
-                  <Text style={{ fontSize: 15, fontWeight: "800", color: report.score >= 90 ? C.green : C.amber }}>{report.score}</Text>
-                </View>
-              )}
               <Badge text={report.status} color={color} bg={bg} />
               <Feather name={isOpen ? "chevron-up" : "chevron-down"} size={16} color={C.textMuted} />
             </Row>
@@ -155,7 +145,7 @@ export default function Seguimiento() {
                 <Feather name="eye" size={12} color={C.textMuted} />
                 <Text style={{ fontSize: 12, color: C.textMuted, fontWeight: "600" }}>Ver reporte</Text>
               </TouchableOpacity>
-              {canDeliver && report.status === "Pendiente" && (
+              {canDeliver && report.status === "Pendiente" && !report.submitted && (
                 <TouchableOpacity
                   onPress={() => deliverReport(report.id)}
                   style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: C.teal, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8 }}
@@ -188,21 +178,20 @@ export default function Seguimiento() {
 
       {/* Stat Cards */}
       <Row style={{ gap: 12, marginBottom: 22 }}>
-        <StatCard label="Parciales Aprobados" value={`${parcialesAprobados}/3`} icon="check-circle" iconBg={C.greenLight} iconColor={C.green} sub={`${Math.round((parcialesAprobados / 3) * 100)}% completado`} />
-        <StatCard label="Calif. Promedio" value={promedio} icon="award" iconBg={C.purpleLight} iconColor={C.purple} />
+        <StatCard label="Parciales Aceptados" value={`${parcialesAceptados}/3`} icon="check-circle" iconBg={C.greenLight} iconColor={C.green} sub={`${Math.round((parcialesAceptados / 3) * 100)}% completado`} />
         <StatCard label="Reporte Final" value={finalDesbloqueado ? "Desbloqueado" : "Bloqueado"} icon={finalDesbloqueado ? "unlock" : "lock"} iconBg={finalDesbloqueado ? C.greenLight : C.amberLight} iconColor={finalDesbloqueado ? C.green : C.amber} />
-        <StatCard label="Preliminar" value={preliminarAprobado ? "Aprobado" : "Pendiente"} icon="file" iconBg={preliminarAprobado ? C.greenLight : C.bg} iconColor={preliminarAprobado ? C.green : C.textMuted} />
+        <StatCard label="Preliminar" value={preliminarAprobado ? "Aceptado" : "Pendiente"} icon="file" iconBg={preliminarAprobado ? C.greenLight : C.bg} iconColor={preliminarAprobado ? C.green : C.textMuted} />
       </Row>
 
       {/* Progress bar */}
       <Card style={{ marginBottom: 18 }}>
         <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <Text style={{ fontSize: 14, fontWeight: "800", color: C.text }}>Progreso General</Text>
-          <Text style={{ fontSize: 13, fontWeight: "700", color: C.teal }}>{Math.round((parcialesAprobados / 3) * 100)}%</Text>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: C.teal }}>{Math.round((parcialesAceptados / 3) * 100)}%</Text>
         </Row>
-        <ProgressBar pct={(parcialesAprobados / 3) * 100} color={C.teal} />
+        <ProgressBar pct={(parcialesAceptados / 3) * 100} color={C.teal} />
         <Row style={{ justifyContent: "space-between", marginTop: 10 }}>
-          <Text style={{ fontSize: 11, color: C.textMuted }}>{parcialesAprobados} de 3 parciales aprobados</Text>
+          <Text style={{ fontSize: 11, color: C.textMuted }}>{parcialesAceptados} de 3 parciales aceptados</Text>
           <Text style={{ fontSize: 11, color: C.textMuted }}>{finalDesbloqueado ? "Reporte Final desbloqueado ✓" : "Reporte Final bloqueado"}</Text>
         </Row>
       </Card>
@@ -223,7 +212,7 @@ export default function Seguimiento() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 14, fontWeight: "800", color: "#92400e" }}>Parciales bloqueados</Text>
-              <Text style={{ fontSize: 12, color: "#92400e", marginTop: 2 }}>Tu Reporte Preliminar debe ser aprobado por tu asesor antes de que puedas entregar los reportes parciales.</Text>
+              <Text style={{ fontSize: 12, color: "#92400e", marginTop: 2 }}>Tu Reporte Preliminar debe ser aceptado por tu asesor antes de que puedas entregar los reportes parciales.</Text>
             </View>
           </Row>
         </Card>
@@ -245,8 +234,8 @@ export default function Seguimiento() {
               <Text style={{ fontSize: 14, fontWeight: "700", color: C.textMuted }}>Reporte Final · Bloqueado</Text>
               <Text style={{ fontSize: 12, color: C.textLight, marginTop: 2 }}>
                 {!preliminarAprobado
-                  ? "Requiere: Preliminar aprobado + los 3 parciales aprobados."
-                  : `Requiere: ${3 - parcialesAprobados} parcial(es) más aprobado(s).`}
+                  ? "Requiere: Preliminar aceptado + los 3 parciales aceptados."
+                  : `Requiere: ${3 - parcialesAceptados} parcial(es) más aceptado(s).`}
               </Text>
             </View>
             <Badge text="Bloqueado" color={C.textMuted} bg={C.bg} />
@@ -271,7 +260,6 @@ export default function Seguimiento() {
                 <Text style={{ fontSize: 13, color: C.textMuted, marginBottom: 12 }}>{viewingReport.subtitle}</Text>
                 <Row style={{ gap: 8, marginBottom: 14 }}>
                   <Badge text={viewingReport.status} color={statusStyle(viewingReport.status).color} bg={statusStyle(viewingReport.status).bg} />
-                  <Badge text={`Calificación: ${viewingReport.score ?? "Pendiente"}`} color={viewingReport.score ? C.green : C.textMuted} bg={viewingReport.score ? C.greenLight : C.bg} />
                 </Row>
                 <Text style={{ fontSize: 13, fontWeight: "700", color: C.textSub, marginBottom: 8 }}>Secciones</Text>
                 <View style={{ gap: 6, marginBottom: 14 }}>

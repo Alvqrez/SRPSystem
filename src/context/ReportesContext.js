@@ -7,8 +7,7 @@ export const INITIAL_REPORTS = [
     id: "preliminar",
     title: "Reporte Preliminar",
     subtitle: "Diagnóstico inicial del proyecto",
-    status: "Aprobado",
-    score: null,
+    status: "Aceptado",
     submitted: "10 Ene 2026",
     reviewer: "Dr. Martínez",
     feedback:
@@ -23,8 +22,7 @@ export const INITIAL_REPORTS = [
     id: 1,
     title: "Reporte Parcial 1",
     subtitle: "Semana 1–4 · Diagnóstico inicial",
-    status: "Aprobado",
-    score: 95,
+    status: "Aceptado",
     submitted: "15 Oct 2024",
     reviewer: "Dr. Martínez",
     feedback:
@@ -39,8 +37,7 @@ export const INITIAL_REPORTS = [
     id: 2,
     title: "Reporte Parcial 2",
     subtitle: "Semana 5–8 · Desarrollo",
-    status: "Aprobado",
-    score: 88,
+    status: "Aceptado",
     submitted: "12 Nov 2024",
     reviewer: "Dr. Martínez",
     feedback:
@@ -55,8 +52,7 @@ export const INITIAL_REPORTS = [
     id: 3,
     title: "Reporte Parcial 3",
     subtitle: "Semana 9–12 · Integración",
-    status: "En Revisión",
-    score: null,
+    status: "Pendiente",
     submitted: "05 Dic 2024",
     reviewer: "Dr. Martínez",
     feedback: null,
@@ -71,7 +67,6 @@ export const INITIAL_REPORTS = [
     title: "Reporte Final",
     subtitle: "Semana 13–16 · Cierre",
     status: "Pendiente",
-    score: null,
     submitted: null,
     reviewer: "Dr. Martínez",
     feedback: null,
@@ -90,10 +85,10 @@ export function ReportesProvider({ children }) {
     setReports((prev) => prev.map((r) => (r.id === id ? { ...r, ...changes } : r)));
 
   const preliminarAprobado =
-    reports.find((r) => r.id === "preliminar")?.status === "Aprobado";
+    reports.find((r) => r.id === "preliminar")?.status === "Aceptado";
 
   const parciales = reports.filter((r) => typeof r.id === "number");
-  const todosParcialesAprobados = parciales.every((r) => r.status === "Aprobado");
+  const todosParcialesAprobados = parciales.every((r) => r.status === "Aceptado");
   const finalDesbloqueado = preliminarAprobado && todosParcialesAprobados;
 
   return (

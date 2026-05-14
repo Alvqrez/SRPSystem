@@ -10,12 +10,7 @@ export default function ReportePreliminar() {
     nombreProyecto: "",
     periodoResidencia: "",
     numAlumnos: "",
-    nombreAlumno: "",
-    carrera: "",
-    numControl: "",
-    correo: "",
-    telefono: "",
-    facebook: "",
+    empresa: "",
     nombreEmpresa: "",
     domicilioEmpresa: "",
     redSocialEmpresa: "",
@@ -26,11 +21,6 @@ export default function ReportePreliminar() {
     puestoExterno: "",
     sitioWebEmpresa: "",
     asesorInterno: "",
-    introduccion: "",
-    problematica: "",
-    objetivoGeneral: "",
-    objetivosEspecificos: "",
-    justificacion: "",
   });
   const [actividades, setActividades] = useState(["", "", "", "", "", "", ""]);
   const [induccion, setInduccion] = useState(
@@ -39,6 +29,7 @@ export default function ReportePreliminar() {
   const [cronograma, setCronograma] = useState(
     Array(7).fill(null).map(() => Array(16).fill(false))
   );
+  const [uploadedFile, setUploadedFile] = useState(null);
   const [savedAt, setSavedAt] = useState(null);
 
   const updateField = (key, value) => setFormData({ ...formData, [key]: value });
@@ -58,14 +49,33 @@ export default function ReportePreliminar() {
     setInduccion(copy);
   };
 
-  const saveReport = () => {
-    if (!formData.nombreProyecto.trim()) {
-      Alert.alert("Falta informacion", "Escribe el nombre del proyecto antes de guardar.");
+  const selectFile = () => {
+    if (!globalThis?.document?.createElement) {
+      Alert.alert("Seleccionar archivo", "La selección de archivos está disponible en la versión web.");
       return;
     }
+    const input = globalThis.document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf,.doc,.docx";
+    input.onchange = (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      setUploadedFile({ name: file.name, size: `${(file.size / (1024 * 1024)).toFixed(2)} MB` });
+    };
+    input.click();
+  };
 
+  const uploadReport = () => {
+    if (!formData.nombreProyecto.trim()) {
+      Alert.alert("Falta información", "Escribe el nombre del proyecto antes de subir.");
+      return;
+    }
+    if (!uploadedFile) {
+      Alert.alert("Sin archivo", "Selecciona el archivo del reporte preliminar antes de subirlo.");
+      return;
+    }
     setSavedAt(new Date().toLocaleString());
-    Alert.alert("Reporte guardado", "El reporte preliminar se guardo localmente.");
+    Alert.alert("Reporte subido", "El reporte preliminar fue subido correctamente y queda pendiente de revisión por tu asesor.");
   };
 
   const fuentes = [
@@ -84,7 +94,7 @@ export default function ReportePreliminar() {
               <Feather name="edit" size={18} color={C.teal} />
               <Text style={{ fontSize: 18, fontWeight: "800", color: "white" }}>Reporte Preliminar</Text>
             </Row>
-            <Text style={{ color: C.textLight, fontSize: 13 }}>Estructura del Reporte Preliminar de Residencia Profesional</Text>
+            <Text style={{ color: C.textLight, fontSize: 13 }}>Residencia Profesional — Datos del Proyecto</Text>
           </View>
           <Badge text="ITV-AC-PO-004-A01" color={C.teal} bg="rgba(13,148,136,0.2)" />
         </Row>
@@ -122,6 +132,7 @@ export default function ReportePreliminar() {
       <Card style={{ marginBottom: 16 }}>
         <Text style={{ fontSize: 14, fontWeight: "800", color: C.text, marginBottom: 14 }}>Datos del Proyecto</Text>
         <FormField label="Nombre del Proyecto" value={formData.nombreProyecto} onChange={(v) => updateField("nombreProyecto", v)} placeholder="Ej: Sistema de gestión de inventarios" />
+        <FormField label="Empresa" value={formData.empresa} onChange={(v) => updateField("empresa", v)} placeholder="Ej: Telmex S.A. de C.V." />
         <Row style={{ gap: 12 }}>
           <View style={{ flex: 1 }}>
             <FormField label="Periodo de Residencia" value={formData.periodoResidencia} onChange={(v) => updateField("periodoResidencia", v)} placeholder="Ej: Ago-Dic 2024" />
@@ -130,34 +141,6 @@ export default function ReportePreliminar() {
             <FormField label="No. de Alumnos" value={formData.numAlumnos} onChange={(v) => updateField("numAlumnos", v)} placeholder="1" />
           </View>
         </Row>
-      </Card>
-
-      {/* Datos del Alumno */}
-      <Card style={{ marginBottom: 16 }}>
-        <Row style={{ alignItems: "center", gap: 8, marginBottom: 14 }}>
-          <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.tealLight, alignItems: "center", justifyContent: "center" }}>
-            <Feather name="user" size={14} color={C.teal} />
-          </View>
-          <Text style={{ fontSize: 14, fontWeight: "800", color: C.text }}>Datos del Alumno</Text>
-        </Row>
-        <FormField label="Nombre del Alumno" value={formData.nombreAlumno} onChange={(v) => updateField("nombreAlumno", v)} placeholder="Nombre completo" />
-        <Row style={{ gap: 12 }}>
-          <View style={{ flex: 1 }}>
-            <FormField label="Carrera" value={formData.carrera} onChange={(v) => updateField("carrera", v)} placeholder="Ing. en Sistemas" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <FormField label="Número de Control" value={formData.numControl} onChange={(v) => updateField("numControl", v)} placeholder="20CS1001" />
-          </View>
-        </Row>
-        <Row style={{ gap: 12 }}>
-          <View style={{ flex: 1 }}>
-            <FormField label="Correo Electrónico" value={formData.correo} onChange={(v) => updateField("correo", v)} placeholder="correo@tecnolandia.edu.mx" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <FormField label="Teléfono" value={formData.telefono} onChange={(v) => updateField("telefono", v)} placeholder="229-XXX-XXXX" />
-          </View>
-        </Row>
-        <FormField label="Perfil de Facebook" value={formData.facebook} onChange={(v) => updateField("facebook", v)} placeholder="URL del perfil" />
       </Card>
 
       {/* Datos de la Organización */}
@@ -201,21 +184,6 @@ export default function ReportePreliminar() {
         </Text>
       </Card>
 
-      {/* Estructura del Reporte */}
-      <Card style={{ marginBottom: 16 }}>
-        <Row style={{ alignItems: "center", gap: 8, marginBottom: 14 }}>
-          <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.purpleLight, alignItems: "center", justifyContent: "center" }}>
-            <Feather name="file-text" size={14} color={C.purple} />
-          </View>
-          <Text style={{ fontSize: 14, fontWeight: "800", color: C.text }}>Estructura del Reporte Preliminar</Text>
-        </Row>
-        <FormField label="Introducción" value={formData.introduccion} onChange={(v) => updateField("introduccion", v)} placeholder="Descripción general del proyecto..." multiline />
-        <FormField label="Problemática" value={formData.problematica} onChange={(v) => updateField("problematica", v)} placeholder="Describe la problemática a resolver..." multiline />
-        <FormField label="Objetivo General" value={formData.objetivoGeneral} onChange={(v) => updateField("objetivoGeneral", v)} placeholder="Objetivo principal del proyecto..." multiline />
-        <FormField label="Objetivos Específicos" value={formData.objetivosEspecificos} onChange={(v) => updateField("objetivosEspecificos", v)} placeholder="Lista de objetivos específicos..." multiline />
-        <FormField label="Justificación" value={formData.justificacion} onChange={(v) => updateField("justificacion", v)} placeholder="Razones que justifican el proyecto..." multiline />
-      </Card>
-
       {/* Actividades */}
       <Card style={{ marginBottom: 16 }}>
         <Row style={{ alignItems: "center", gap: 8, marginBottom: 14 }}>
@@ -255,7 +223,6 @@ export default function ReportePreliminar() {
           </View>
           <Text style={{ fontSize: 14, fontWeight: "800", color: C.text }}>Cronograma de Actividades (16 semanas)</Text>
         </Row>
-        {/* Header semanas */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View>
             <Row>
@@ -300,7 +267,29 @@ export default function ReportePreliminar() {
         </ScrollView>
       </Card>
 
-      {/* Botón guardar */}
+      {/* Subir archivo */}
+      <Card style={{ marginBottom: 16 }}>
+        <Row style={{ alignItems: "center", gap: 8, marginBottom: 14 }}>
+          <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.blueLight, alignItems: "center", justifyContent: "center" }}>
+            <Feather name="upload-cloud" size={14} color={C.blue} />
+          </View>
+          <Text style={{ fontSize: 14, fontWeight: "800", color: C.text }}>Archivo del Reporte</Text>
+        </Row>
+        <TouchableOpacity
+          onPress={selectFile}
+          style={{ borderWidth: 2, borderStyle: "dashed", borderColor: uploadedFile ? C.teal : C.border, borderRadius: 12, padding: 24, alignItems: "center", backgroundColor: uploadedFile ? C.tealLighter : C.bg }}
+        >
+          <Feather name="upload-cloud" size={28} color={uploadedFile ? C.teal : C.textMuted} style={{ marginBottom: 8 }} />
+          <Text style={{ fontSize: 13, fontWeight: "700", color: uploadedFile ? C.teal : C.text, marginBottom: 4 }}>
+            {uploadedFile ? uploadedFile.name : "Seleccionar archivo"}
+          </Text>
+          <Text style={{ fontSize: 11, color: C.textMuted }}>
+            {uploadedFile ? uploadedFile.size : "PDF, DOCX · máx 25 MB"}
+          </Text>
+        </TouchableOpacity>
+      </Card>
+
+      {/* Confirmación de subida */}
       {savedAt && (
         <View
           style={{
@@ -315,15 +304,20 @@ export default function ReportePreliminar() {
           <Row style={{ alignItems: "center", gap: 8 }}>
             <Feather name="check-circle" size={16} color={C.green} />
             <Text style={{ fontSize: 12, color: C.green, fontWeight: "700" }}>
-              Guardado localmente: {savedAt}
+              Reporte subido: {savedAt}
             </Text>
           </Row>
         </View>
       )}
-      <TouchableOpacity onPress={saveReport} style={{ backgroundColor: C.teal, borderRadius: 12, padding: 16, alignItems: "center", marginBottom: 40 }}>
+
+      {/* Botón subir reporte */}
+      <TouchableOpacity
+        onPress={uploadReport}
+        style={{ backgroundColor: C.teal, borderRadius: 12, padding: 16, alignItems: "center", marginBottom: 40 }}
+      >
         <Row style={{ alignItems: "center", gap: 8 }}>
-          <Feather name="save" size={18} color="white" />
-          <Text style={{ color: "white", fontWeight: "800", fontSize: 15 }}>Guardar Reporte Preliminar</Text>
+          <Feather name="upload-cloud" size={18} color="white" />
+          <Text style={{ color: "white", fontWeight: "800", fontSize: 15 }}>Subir Reporte Preliminar</Text>
         </Row>
       </TouchableOpacity>
     </ScrollView>

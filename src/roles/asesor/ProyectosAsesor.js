@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Pressable, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../../constants/colors";
 import { Row, Card, Badge, ProgressBar } from "../../components";
@@ -8,21 +8,14 @@ import { useProyectos } from "../../context/ProyectosContext";
 const PHASE_LABELS = { propuesto: "Propuesto", desarrollo: "En Desarrollo", revision: "En Revisión", concluido: "Concluido" };
 const PHASE_COLORS = { propuesto: C.blue, desarrollo: C.amber, revision: C.purple, concluido: C.green };
 const PRIORITY_OPTS = [
-  { label: "Alta", color: C.red, bg: C.redLight },
+  { label: "Alta",  color: C.red,   bg: C.redLight   },
   { label: "Media", color: C.amber, bg: C.amberLight },
-  { label: "Baja", color: C.green, bg: C.greenLight },
+  { label: "Baja",  color: C.green, bg: C.greenLight },
 ];
 
-const EMPTY_FORM = {
-  title: "", company: "", residentesRequeridos: "2", residentesAsignados: "",
-  habilidades: "", rolRequerido: "", descripcionAvance: "", priority: "Media",
-};
-
 export default function ProyectosAsesor() {
-  const { proyectos, propuestas, addPropuesta, solicitarAvanceFase } = useProyectos() || { proyectos: [], propuestas: [] };
-  const [modalVisible, setModal] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [sortBy, setSortBy] = useState("proyecto"); // proyecto, residente, fase
+  const { proyectos, solicitarAvanceFase } = useProyectos() || { proyectos: [] };
+  const [sortBy,   setSortBy]   = useState("proyecto");
   const [showSort, setShowSort] = useState(false);
   const [expanded, setExpanded] = useState(null);
 
@@ -36,36 +29,6 @@ export default function ProyectosAsesor() {
     }
     return arr;
   }, [proyectos, sortBy]);
-
-  const handleProposal = () => {
-    if (!form.title.trim()) { Alert.alert("Error", "Ingresa el nombre del proyecto."); return; }
-    if (!form.company.trim()) { Alert.alert("Error", "Ingresa la empresa."); return; }
-
-    const asignados = form.residentesAsignados.split(",").map((s) => s.trim()).filter(Boolean).map((n) => ({
-      nombre: n,
-      iniciales: n.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2),
-      rol: "Por definir",
-    }));
-
-    addPropuesta({
-      title: form.title.trim(),
-      company: form.company.trim(),
-      priority: form.priority,
-      residentesRequeridos: parseInt(form.residentesRequeridos) || 2,
-      residentesAsignados: asignados,
-      residentesFaltantes: Math.max(0, (parseInt(form.residentesRequeridos) || 2) - asignados.length),
-      habilidadesRequeridas: form.habilidades.split(",").map((s) => s.trim()).filter(Boolean),
-      rolRequerido: form.rolRequerido.trim(),
-      descripcionAvance: form.descripcionAvance.trim(),
-      asesor: "Dr. Martínez",
-      asesorId: "asesor1",
-      fechaPropuesta: new Date().toISOString().slice(0, 10),
-    });
-
-    setModal(false);
-    setForm(EMPTY_FORM);
-    Alert.alert("Propuesta enviada", "Tu propuesta de proyecto ha sido enviada al Jefe de Vinculación para su aprobación.");
-  };
 
   const handleSolicitarAvance = (proyectoId) => {
     if (solicitarAvanceFase) {
@@ -81,60 +44,34 @@ export default function ProyectosAsesor() {
         <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
           <View>
             <Text style={{ fontSize: 22, fontWeight: "800", color: C.text }}>Mis Proyectos</Text>
-            <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>{proyectos.length} proyectos asignados · {propuestas.filter((p) => p.status === "Pendiente").length} propuestas pendientes</Text>
+            <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>{proyectos.length} proyectos asignados</Text>
           </View>
-          <Row style={{ gap: 10 }}>
-            {/* Sort */}
-            <View style={{ position: "relative" }}>
-              <TouchableOpacity onPress={() => setShowSort(!showSort)} style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: C.border, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 9, backgroundColor: C.card }}>
-                <Feather name="bar-chart-2" size={13} color={C.textMuted} />
-                <Text style={{ fontSize: 12, color: C.textMuted, fontWeight: "600" }}>Ordenar</Text>
-              </TouchableOpacity>
-              {showSort && (
-                <View style={{ position: "absolute", top: 42, right: 0, width: 180, backgroundColor: C.card, borderRadius: 10, borderWidth: 1, borderColor: C.border, padding: 10, zIndex: 50 }}>
-                  {[{ id: "proyecto", label: "Nombre del proyecto" }, { id: "residente", label: "Nombre del residente" }, { id: "fase", label: "Fase del proyecto" }].map((opt) => (
-                    <TouchableOpacity key={opt.id} onPress={() => { setSortBy(opt.id); setShowSort(false); }} style={{ paddingVertical: 7 }}>
-                      <Text style={{ fontSize: 12, color: sortBy === opt.id ? C.teal : C.textSub, fontWeight: sortBy === opt.id ? "800" : "600" }}>{opt.label}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-            {/* New proposal */}
-            <TouchableOpacity onPress={() => setModal(true)} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: C.teal, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 9 }}>
-              <Feather name="plus" size={14} color="white" />
-              <Text style={{ color: "white", fontWeight: "700", fontSize: 13 }}>Proponer Proyecto</Text>
+          {/* Sort */}
+          <View style={{ position: "relative" }}>
+            <TouchableOpacity onPress={() => setShowSort(!showSort)} style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: C.border, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 9, backgroundColor: C.card }}>
+              <Feather name="bar-chart-2" size={13} color={C.textMuted} />
+              <Text style={{ fontSize: 12, color: C.textMuted, fontWeight: "600" }}>Ordenar</Text>
             </TouchableOpacity>
-          </Row>
+            {showSort && (
+              <View style={{ position: "absolute", top: 42, right: 0, width: 180, backgroundColor: C.card, borderRadius: 10, borderWidth: 1, borderColor: C.border, padding: 10, zIndex: 50 }}>
+                {[{ id: "proyecto", label: "Nombre del proyecto" }, { id: "residente", label: "Nombre del residente" }, { id: "fase", label: "Fase del proyecto" }].map((opt) => (
+                  <TouchableOpacity key={opt.id} onPress={() => { setSortBy(opt.id); setShowSort(false); }} style={{ paddingVertical: 7 }}>
+                    <Text style={{ fontSize: 12, color: sortBy === opt.id ? C.teal : C.textSub, fontWeight: sortBy === opt.id ? "800" : "600" }}>{opt.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
         </Row>
-
-        {/* Propuestas Pendientes */}
-        {propuestas.filter((p) => p.status === "Pendiente").length > 0 && (
-          <Card style={{ marginBottom: 20, borderLeftWidth: 4, borderLeftColor: C.blue }}>
-            <Text style={{ fontSize: 14, fontWeight: "700", color: C.text, marginBottom: 12 }}>Propuestas Pendientes de Aprobación</Text>
-            {propuestas.filter((p) => p.status === "Pendiente").map((prop, i) => (
-              <Row key={i} style={{ alignItems: "center", gap: 12, paddingVertical: 10, borderTopWidth: i > 0 ? 1 : 0, borderTopColor: C.border }}>
-                <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: C.blueLight, alignItems: "center", justifyContent: "center" }}>
-                  <Feather name="clock" size={16} color={C.blue} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>{prop.title}</Text>
-                  <Text style={{ fontSize: 11, color: C.textMuted }}>{prop.company} · Prioridad: {prop.priority}</Text>
-                </View>
-                <Badge text="Esperando aprobación" color={C.blue} bg={C.blueLight} />
-              </Row>
-            ))}
-          </Card>
-        )}
 
         {/* Project Cards */}
         <View style={{ gap: 16 }}>
           {sortedProyectos.map((p) => {
             const isExpanded = expanded === p.id;
-            const pct = p.horasTotales > 0 ? Math.round((p.horasDocumentadas / p.horasTotales) * 100) : 0;
             const phaseColor = PHASE_COLORS[p.phase] || C.textMuted;
-            const aprobados = p.reportes.filter((r) => r.status === "Aprobado").length;
-            const totalReps = p.reportes.length;
+            const aceptados  = p.reportes.filter((r) => r.status === "Aceptado").length;
+            const totalReps  = p.reportes.length;
+            const pct        = totalReps > 0 ? Math.round((aceptados / totalReps) * 100) : 0;
 
             return (
               <Card key={p.id} style={{ padding: 0, overflow: "hidden" }}>
@@ -151,10 +88,10 @@ export default function ProyectosAsesor() {
                     <Feather name={isExpanded ? "chevron-up" : "chevron-down"} size={18} color={C.textMuted} />
                   </Row>
 
-                  {/* Progress bar */}
+                  {/* Progress bar: reportes */}
                   <View style={{ marginTop: 14 }}>
                     <Row style={{ justifyContent: "space-between", marginBottom: 4 }}>
-                      <Text style={{ fontSize: 11, color: C.textMuted }}>Progreso: {p.horasDocumentadas}/{p.horasTotales} hrs</Text>
+                      <Text style={{ fontSize: 11, color: C.textMuted }}>Reportes aceptados: {aceptados}/{totalReps}</Text>
                       <Text style={{ fontSize: 11, fontWeight: "700", color: C.teal }}>{pct}%</Text>
                     </Row>
                     <ProgressBar pct={pct} color={C.teal} />
@@ -184,8 +121,8 @@ export default function ProyectosAsesor() {
                   <View style={{ paddingHorizontal: 18, paddingBottom: 18, borderTopWidth: 1, borderTopColor: C.border, paddingTop: 14 }}>
                     <Row style={{ gap: 16, marginBottom: 14 }}>
                       <View style={{ flex: 1, backgroundColor: C.bg, borderRadius: 8, padding: 10, alignItems: "center" }}>
-                        <Text style={{ fontSize: 18, fontWeight: "800", color: C.teal }}>{aprobados}/{totalReps}</Text>
-                        <Text style={{ fontSize: 10, color: C.textMuted }}>Reportes aprobados</Text>
+                        <Text style={{ fontSize: 18, fontWeight: "800", color: C.teal }}>{aceptados}/{totalReps}</Text>
+                        <Text style={{ fontSize: 10, color: C.textMuted }}>Reportes aceptados</Text>
                       </View>
                       <View style={{ flex: 1, backgroundColor: C.bg, borderRadius: 8, padding: 10, alignItems: "center" }}>
                         <Text style={{ fontSize: 18, fontWeight: "800", color: C.blue }}>{p.habilidades.length}</Text>
@@ -231,83 +168,6 @@ export default function ProyectosAsesor() {
           })}
         </View>
       </ScrollView>
-
-      {/* Modal: Proponer Proyecto */}
-      <Modal visible={modalVisible} transparent animationType="fade">
-        <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", alignItems: "center" }} onPress={() => setModal(false)}>
-          <Pressable style={{ width: 520, maxHeight: "85%", backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border }} onPress={() => {}}>
-            <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: C.border }}>
-              <Row style={{ justifyContent: "space-between", alignItems: "center" }}>
-                <View>
-                  <Text style={{ fontSize: 18, fontWeight: "800", color: C.text }}>Proponer Nuevo Proyecto</Text>
-                  <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>Se enviará al Jefe de Vinculación para aprobación</Text>
-                </View>
-                <TouchableOpacity onPress={() => setModal(false)}>
-                  <Feather name="x" size={20} color={C.textMuted} />
-                </TouchableOpacity>
-              </Row>
-            </View>
-            <ScrollView style={{ padding: 24 }}>
-              {[
-                ["Nombre del proyecto *", "title", "Ej: Sistema de Control de Calidad"],
-                ["Empresa *", "company", "Ej: Industrias del Norte S.A."],
-                ["Residentes asignados (separados por coma)", "residentesAsignados", "Ej: Juan Pérez, María López"],
-                ["Residentes requeridos (número)", "residentesRequeridos", "Ej: 3"],
-                ["Habilidades/tecnologías requeridas (separadas por coma)", "habilidades", "Ej: React, Node.js, MongoDB"],
-                ["Rol o perfil deseado para faltantes", "rolRequerido", "Ej: Backend Developer con experiencia en APIs REST"],
-              ].map(([label, key, ph]) => (
-                <View key={key} style={{ marginBottom: 14 }}>
-                  <Text style={{ fontSize: 11, fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 6 }}>{label}</Text>
-                  <TextInput
-                    value={form[key]}
-                    onChangeText={(v) => setForm({ ...form, [key]: v })}
-                    placeholder={ph}
-                    placeholderTextColor={C.textLight}
-                    style={{ padding: 11, borderRadius: 8, borderWidth: 1, borderColor: C.border, fontSize: 13, color: C.text, backgroundColor: "#FAFAFA" }}
-                  />
-                </View>
-              ))}
-
-              {/* Avances */}
-              <View style={{ marginBottom: 14 }}>
-                <Text style={{ fontSize: 11, fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 6 }}>Descripción de avances del proyecto</Text>
-                <TextInput
-                  value={form.descripcionAvance}
-                  onChangeText={(v) => setForm({ ...form, descripcionAvance: v })}
-                  placeholder="Describe los avances que tiene el proyecto hasta el momento..."
-                  placeholderTextColor={C.textLight}
-                  multiline
-                  style={{ padding: 11, borderRadius: 8, borderWidth: 1, borderColor: C.border, fontSize: 13, color: C.text, backgroundColor: "#FAFAFA", minHeight: 80, textAlignVertical: "top" }}
-                />
-              </View>
-
-              {/* Prioridad */}
-              <Text style={{ fontSize: 11, fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 8 }}>Prioridad</Text>
-              <Row style={{ gap: 8, marginBottom: 22 }}>
-                {PRIORITY_OPTS.map(({ label, color, bg }) => (
-                  <TouchableOpacity
-                    key={label}
-                    onPress={() => setForm({ ...form, priority: label })}
-                    style={{ flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: form.priority === label ? color : C.border, backgroundColor: form.priority === label ? bg : "transparent", alignItems: "center" }}
-                  >
-                    <Text style={{ fontSize: 13, fontWeight: "700", color: form.priority === label ? color : C.textMuted }}>{label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </Row>
-
-              {/* Buttons */}
-              <Row style={{ gap: 10, marginBottom: 10 }}>
-                <TouchableOpacity onPress={() => setModal(false)} style={{ flex: 1, paddingVertical: 11, borderRadius: 9, borderWidth: 1, borderColor: C.border, alignItems: "center" }}>
-                  <Text style={{ fontSize: 14, fontWeight: "600", color: C.textMuted }}>Cancelar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleProposal} style={{ flex: 2, paddingVertical: 11, borderRadius: 9, backgroundColor: C.teal, alignItems: "center" }}>
-                  <Text style={{ fontSize: 14, fontWeight: "700", color: "white" }}>Enviar Propuesta</Text>
-                </TouchableOpacity>
-              </Row>
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
     </View>
   );
 }

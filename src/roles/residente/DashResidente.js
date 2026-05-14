@@ -15,8 +15,8 @@ export default function DashResidente({ onNavigate }) {
   ];
 
   const reportes = [
-    { nombre: "Reporte 1 — Avance Inicial", fechaLimite: "15 Oct", fechaEntrega: "12 Oct", estado: "Aprobado",  estadoColor: C.green, estadoBg: C.greenLight },
-    { nombre: "Reporte 2 — Desarrollo",     fechaLimite: "15 Nov", fechaEntrega: "13 Nov", estado: "Aprobado",  estadoColor: C.green, estadoBg: C.greenLight },
+    { nombre: "Reporte 1 — Avance Inicial", fechaLimite: "15 Oct", fechaEntrega: "12 Oct", estado: "Aceptado",  estadoColor: C.green, estadoBg: C.greenLight },
+    { nombre: "Reporte 2 — Desarrollo",     fechaLimite: "15 Nov", fechaEntrega: "13 Nov", estado: "Aceptado",  estadoColor: C.green, estadoBg: C.greenLight },
     { nombre: "Reporte 3 — Avance Final",   fechaLimite: "15 Dic", fechaEntrega: "—",      estado: "Pendiente", estadoColor: C.amber, estadoBg: C.amberLight },
   ];
 
@@ -27,15 +27,17 @@ export default function DashResidente({ onNavigate }) {
     { fecha: "27 Ene", titulo: "Evaluación Final",    color: C.green },
   ];
 
+  const reportesAceptados = reportes.filter((r) => r.estado === "Aceptado").length;
+  const totalReportes = reportes.length;
+
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 24 }}>
       <SectionTitle title="Dashboard Residente" />
 
       {/* Stat Cards */}
       <Row style={{ gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
-        <StatCard label="Horas Completadas" value="384" sub="de 480 requeridas"  icon="clock"       iconBg={C.blueLight}  iconColor={C.blue}  trend="+12h" trendUp />
-        <StatCard label="Reportes"          value="2/3" sub="Reporte 3 pendiente" icon="file-text"  iconBg={C.tealLight}  iconColor={C.teal}  />
-        <StatCard label="Progreso"          value="80%" sub="Buen ritmo"          icon="trending-up" iconBg={C.greenLight} iconColor={C.green} trend="+5%" trendUp />
+        <StatCard label="Reportes"          value={`${reportesAceptados}/${totalReportes}`} sub="Reporte 3 pendiente" icon="file-text"  iconBg={C.tealLight}  iconColor={C.teal}  />
+        <StatCard label="Progreso"          value="67%" sub="Buen ritmo"          icon="trending-up" iconBg={C.greenLight} iconColor={C.green} trend="+1 reporte" trendUp />
         <StatCard label="Días Restantes"    value="28"  sub="Fin: 20 ene 2025"   icon="calendar"    iconBg={C.amberLight} iconColor={C.amber} />
       </Row>
 
@@ -84,13 +86,13 @@ export default function DashResidente({ onNavigate }) {
             </Row>
             <View style={{ backgroundColor: C.bg, borderRadius: 10, padding: 16 }}>
               <Row style={{ justifyContent: "space-between", marginBottom: 8 }}>
-                <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>Horas (80%)</Text>
-                <Text style={{ fontSize: 13, color: C.textMuted }}>384 / 480</Text>
+                <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>Avance de Reportes (67%)</Text>
+                <Text style={{ fontSize: 13, color: C.textMuted }}>{reportesAceptados} / {totalReportes}</Text>
               </Row>
-              <ProgressBar pct={80} color={C.teal} />
+              <ProgressBar pct={67} color={C.teal} />
               <Row style={{ justifyContent: "space-between", marginTop: 8 }}>
-                <Text style={{ fontSize: 12, color: C.teal }}>384 completadas</Text>
-                <Text style={{ fontSize: 12, color: C.textMuted }}>96 restantes</Text>
+                <Text style={{ fontSize: 12, color: C.teal }}>{reportesAceptados} aceptados</Text>
+                <Text style={{ fontSize: 12, color: C.textMuted }}>{totalReportes - reportesAceptados} pendiente(s)</Text>
               </Row>
             </View>
           </Card>
