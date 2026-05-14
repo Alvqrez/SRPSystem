@@ -4,51 +4,45 @@ import C from "../../constants/colors";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
 
-import DashJefe from "./DashJefe";
-import ValidacionFuentes from "./ValidacionFuentes";
-import PropuestasAsesores from "./PropuestasAsesores";
-import GestionEmpresas from "../../screens/GestionEmpresas";
+import DashJefe         from "./DashJefe";
+import GestionEmpresas  from "../../screens/GestionEmpresas";
 import GestionProyectos from "../../screens/GestionProyectos";
-import Seguimiento from "../../screens/Seguimiento";
-import Notificaciones from "../../screens/Notificaciones";
-import CalendarioCitas from "../../screens/CalendarioCitas";
+import SeguimientoJefe  from "../../screens/SeguimientoJefe";
+import AsignacionJefe   from "../../screens/AsignacionJefe";
+import Utilerias        from "../../screens/Utilerias";
+import Notificaciones   from "../../screens/Notificaciones";
+import CalendarioCitas  from "../../screens/CalendarioCitas";
 
 const NAV = [
-  { id: "dashboard", label: "Dashboard", icon: "grid" },
-  { id: "empresas", label: "Empresas", icon: "briefcase" },
-  { id: "proyectos", label: "Proyectos", icon: "folder" },
-  { id: "propuestas", label: "Propuestas", icon: "send" },
-  { id: "seguimiento", label: "Seguimiento", icon: "file-text" },
-  {
-    id: "validacion-fuentes",
-    label: "Validación Fuentes",
-    icon: "check-square",
-  },
-  { id: "notificaciones", label: "Notificaciones", icon: "bell" },
-  { id: "calendario", label: "Calendario", icon: "calendar" },
+  { id: "dashboard",        label: "Dashboard",    icon: "grid"        },
+  { id: "empresas",         label: "Empresas",     icon: "briefcase"   },
+  { id: "proyectos",        label: "Proyectos",    icon: "folder"      },
+  { id: "asignacion",       label: "Asignación",   icon: "user-plus"   },
+  { id: "seguimiento",      label: "Seguimiento",  icon: "file-text"   },
+  { id: "notificaciones",   label: "Notificaciones", icon: "bell"      },
+  { id: "calendario",       label: "Calendario",   icon: "calendar"    },
+  { id: "utilerias",        label: "Utilerías",    icon: "tool"        },
 ];
 
+const DEPARTAMENTO = "Departamento de Sistemas";
+
 function JefeAppInner({ usuario, onLogout }) {
-  const [activeNav, setActiveNav] = useState("dashboard");
+  const [activeNav,  setActiveNav]  = useState("dashboard");
+  const [fotoPerfil, setFotoPerfil] = useState(null);
+
   const views = {
-    dashboard: <DashJefe onNavigate={setActiveNav} />,
-    empresas: <GestionEmpresas />,
-    proyectos: <GestionProyectos />,
-    propuestas: <PropuestasAsesores onNavigate={setActiveNav} />,
-    seguimiento: <Seguimiento />,
-    "validacion-fuentes": <ValidacionFuentes onNavigate={setActiveNav} />,
+    dashboard:      <DashJefe onNavigate={setActiveNav} />,
+    empresas:       <GestionEmpresas />,
+    proyectos:      <GestionProyectos />,
+    asignacion:     <AsignacionJefe />,
+    seguimiento:    <SeguimientoJefe />,
     notificaciones: <Notificaciones onNavigate={setActiveNav} />,
-    calendario: <CalendarioCitas />,
+    calendario:     <CalendarioCitas />,
+    utilerias:      <Utilerias fotoPerfil={fotoPerfil} setFotoPerfil={setFotoPerfil} usuario={usuario} role="Jefe de Vinculación" />,
   };
+
   return (
-    <View
-      style={{
-        flex: 1,
-        flexDirection: "row",
-        height: Platform.OS === "web" ? "100vh" : "100%",
-        backgroundColor: C.bg,
-      }}
-    >
+    <View style={{ flex: 1, flexDirection: "row", height: Platform.OS === "web" ? "100vh" : "100%", backgroundColor: C.bg }}>
       <Sidebar
         activeNav={activeNav}
         setActiveNav={setActiveNav}
@@ -56,6 +50,8 @@ function JefeAppInner({ usuario, onLogout }) {
         navItems={NAV}
         onLogout={onLogout}
         usuario={usuario}
+        departamento={DEPARTAMENTO}
+        fotoPerfil={fotoPerfil}
       />
       <View style={{ flex: 1, flexDirection: "column" }}>
         <TopBar
@@ -65,6 +61,7 @@ function JefeAppInner({ usuario, onLogout }) {
           role="Jefe de Vinculación"
           onLogout={onLogout}
           usuario={usuario}
+          fotoPerfil={fotoPerfil}
         />
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 24 }}>
           {views[activeNav] || views.dashboard}

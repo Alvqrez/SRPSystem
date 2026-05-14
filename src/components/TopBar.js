@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, Image, TextInput, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import Row from "./Row";
 import { useNotificaciones } from "../context/NotificacionesContext";
 
-export default function TopBar({ activeNav, navItems = [], setActiveNav, role, onLogout, usuario }) {
+export default function TopBar({ activeNav, navItems = [], setActiveNav, role, onLogout, usuario, fotoPerfil }) {
   const [query, setQuery] = useState("");
   const { unreadCount } = useNotificaciones() || { unreadCount: 0 };
-  // Busca también dentro de grupos colapsables
+
   const findNavItem = (items, id) => {
     for (const item of items) {
       if (item.id === id) return item;
@@ -19,16 +19,19 @@ export default function TopBar({ activeNav, navItems = [], setActiveNav, role, o
     }
     return null;
   };
+
   const currentItem = findNavItem(navItems, activeNav);
   const pageTitle   = currentItem ? currentItem.label : "Dashboard";
   const hasNotif    = navItems.some((item) => item.id === "notificaciones");
-  const initials    = usuario?.nombre
+  const hasUtilerias = navItems.some((item) => item.id === "utilerias");
+
+  const initials = usuario?.nombre
     ? usuario.nombre.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "??";
+
   const searchSection = () => {
     if (!query.trim()) return;
     const q = query.trim().toLowerCase();
-    // Busca en items directos y en hijos de grupos
     for (const item of navItems) {
       if (!item.group && item.label.toLowerCase().includes(q)) {
         if (setActiveNav) setActiveNav(item.id);
@@ -43,8 +46,10 @@ export default function TopBar({ activeNav, navItems = [], setActiveNav, role, o
   };
 
   return (
-    <View style={{ backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border,
-      paddingHorizontal: 24, paddingVertical: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+    <View style={{
+      backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border,
+      paddingHorizontal: 24, paddingVertical: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between"
+    }}>
       <View>
         <Row style={{ alignItems: "center", gap: 5 }}>
           <Text style={{ fontSize: 11, color: C.textLight }}>VinculaTec</Text>
@@ -68,7 +73,7 @@ export default function TopBar({ activeNav, navItems = [], setActiveNav, role, o
           />
         </View>
 
-        {/* Campana con contador dinámico */}
+        {/* Campana */}
         <TouchableOpacity
           onPress={() => hasNotif && setActiveNav && setActiveNav("notificaciones")}
           style={{ width: 36, height: 36, borderRadius: 9, backgroundColor: C.bg, borderWidth: 1, borderColor: C.border, alignItems: "center", justifyContent: "center" }}
@@ -83,11 +88,21 @@ export default function TopBar({ activeNav, navItems = [], setActiveNav, role, o
           )}
         </TouchableOpacity>
 
-        {/* Usuario */}
-        <Row style={{ alignItems: "center", gap: 8 }}>
-          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.teal, alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ color: "white", fontWeight: "700", fontSize: 12 }}>{initials}</Text>
-          </View>
+        {/* Avatar / foto de perfil */}
+        <TouchableOpacity
+          onPress={() => hasUtilerias && setActiveNav && setActiveNav("utilerias")}
+          style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+        >
+          {fotoPerfil ? (
+            <Image
+              source={{ uri: fotoPerfil }}
+              style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: C.teal }}
+            />
+          ) : (
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.teal, alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ color: "white", fontWeight: "700", fontSize: 12 }}>{initials}</Text>
+            </View>
+          )}
           <View>
             <Text style={{ fontSize: 12, fontWeight: "700", color: C.text }}>{usuario?.nombre || "Usuario"}</Text>
             <Text style={{ fontSize: 10, color: C.textLight }}>{role}</Text>
@@ -95,7 +110,7 @@ export default function TopBar({ activeNav, navItems = [], setActiveNav, role, o
           <TouchableOpacity onPress={onLogout} style={{ marginLeft: 4 }}>
             <Feather name="log-out" size={15} color={C.textMuted} />
           </TouchableOpacity>
-        </Row>
+        </TouchableOpacity>
       </Row>
     </View>
   );

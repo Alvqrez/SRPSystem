@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import Row from "./Row";
 import { useNotificaciones } from "../context/NotificacionesContext";
 
-// Busca un item (incluyendo dentro de grupos) y devuelve el objeto
 const findItem = (navItems, id) => {
   for (const item of navItems) {
     if (item.id === id) return item;
@@ -17,14 +16,12 @@ const findItem = (navItems, id) => {
   return null;
 };
 
-// Devuelve true si algún hijo del grupo está activo
 const groupHasActive = (group, activeNav) =>
   group.children?.some((c) => c.id === activeNav) ?? false;
 
-export default function Sidebar({ activeNav, setActiveNav, role, navItems = [], onLogout }) {
+export default function Sidebar({ activeNav, setActiveNav, role, navItems = [], onLogout, usuario, departamento, fotoPerfil }) {
   const { unreadCount } = useNotificaciones() || { unreadCount: 0 };
 
-  // Inicializa grupos abiertos: auto-abre si algún hijo está activo
   const [openGroups, setOpenGroups] = useState(() => {
     const init = {};
     navItems.forEach((item) => {
@@ -36,7 +33,10 @@ export default function Sidebar({ activeNav, setActiveNav, role, navItems = [], 
   const toggleGroup = (id) =>
     setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  // Renderiza un nav item regular
+  const initials = usuario?.nombre
+    ? usuario.nombre.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "??";
+
   const NavItem = ({ id, label, icon, indent = false }) => {
     const active = activeNav === id;
     const count  = id === "notificaciones" ? unreadCount : 0;
@@ -74,21 +74,43 @@ export default function Sidebar({ activeNav, setActiveNav, role, navItems = [], 
 
   return (
     <View style={{ width: 230, backgroundColor: C.navy, flexDirection: "column", height: "100%" }}>
-      {/* Logo */}
+      {/* Logo + departamento */}
       <View style={{ padding: 18, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.07)" }}>
         <Row style={{ alignItems: "center", gap: 9, marginBottom: 10 }}>
           <View style={{ width: 32, height: 32, backgroundColor: C.teal, borderRadius: 9, alignItems: "center", justifyContent: "center" }}>
             <Text style={{ color: "white", fontWeight: "800", fontSize: 13 }}>VT</Text>
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={{ color: "white", fontWeight: "800", fontSize: 15 }}>VinculaTec</Text>
-            <Text style={{ color: "#3D5A8A", fontSize: 10 }}>v2.4 — 2025-B</Text>
+            <Text style={{ color: "#5EEAD4", fontSize: 10, fontWeight: "600" }} numberOfLines={1}>
+              {departamento || "Sistema de Residencias"}
+            </Text>
           </View>
         </Row>
         <View style={{ backgroundColor: "rgba(13,148,136,0.15)", borderRadius: 8, paddingVertical: 6, paddingHorizontal: 10, alignSelf: "flex-start" }}>
           <Text style={{ color: "#5EEAD4", fontSize: 11, fontWeight: "700" }}>{role}</Text>
         </View>
       </View>
+
+      {/* Usuario en sidebar */}
+      <TouchableOpacity
+        onPress={() => setActiveNav && setActiveNav("utilerias")}
+        style={{ paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.07)" }}
+      >
+        <Row style={{ alignItems: "center", gap: 10 }}>
+          {fotoPerfil ? (
+            <Image source={{ uri: fotoPerfil }} style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: C.teal }} />
+          ) : (
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.teal, alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ color: "white", fontWeight: "700", fontSize: 12 }}>{initials}</Text>
+            </View>
+          )}
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: "white", fontSize: 12, fontWeight: "700" }} numberOfLines={1}>{usuario?.nombre || "Usuario"}</Text>
+            <Text style={{ color: "#5EEAD4", fontSize: 10 }}>Ver perfil →</Text>
+          </View>
+        </Row>
+      </TouchableOpacity>
 
       {/* Nav items */}
       <ScrollView style={{ flex: 1, padding: 10 }}>
@@ -101,13 +123,11 @@ export default function Sidebar({ activeNav, setActiveNav, role, navItems = [], 
             return <NavItem key={item.id} {...item} />;
           }
 
-          // ── Grupo colapsable ──────────────────────────────────────────────
           const isOpen      = openGroups[item.id] ?? false;
           const childActive = groupHasActive(item, activeNav);
 
           return (
             <View key={item.id}>
-              {/* Cabecera del grupo */}
               <TouchableOpacity
                 onPress={() => toggleGroup(item.id)}
                 style={{
@@ -125,14 +145,9 @@ export default function Sidebar({ activeNav, setActiveNav, role, navItems = [], 
                 <Text style={{ flex: 1, color: childActive ? "#5EEAD4" : C.textLight, fontSize: 13, fontWeight: childActive ? "700" : "500" }}>
                   {item.label}
                 </Text>
-                <Feather
-                  name={isOpen ? "chevron-up" : "chevron-down"}
-                  size={13}
-                  color={childActive ? "#5EEAD4" : "#3D5A8A"}
-                />
+                <Feather name={isOpen ? "chevron-up" : "chevron-down"} size={13} color={childActive ? "#5EEAD4" : "#3D5A8A"} />
               </TouchableOpacity>
 
-              {/* Hijos */}
               {isOpen && (
                 <View style={{ marginBottom: 4 }}>
                   {item.children.map((child) => (
