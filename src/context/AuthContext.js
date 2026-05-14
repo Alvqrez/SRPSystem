@@ -5,7 +5,6 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
 
-  // Al montar, leer token guardado
   useEffect(() => {
     const stored = localStorage.getItem("authToken");
     if (stored) setToken(stored);
@@ -33,11 +32,20 @@ export function useAuth() {
   return context;
 }
 
-// Funciones que usa App.js (setAuthToken, getAuthToken) las exportamos
+// ── Helpers de token (singleton sobre localStorage) ────────────────────────
+// Usados por App.js y DashAsesor.js directamente (sin contexto React)
 export function setAuthToken(token) {
-  // Esta será llamada desde App.js, pero debemos asegurarnos de que tenga acceso al contexto.
-  // Alternativa: usar un singleton simple (menos elegante pero funcional).
-  // Para simplificar, dejaremos que App.js siga usando su propio estado, pero también guardaremos en localStorage.
-  // Luego en DashAsesor leeremos de localStorage directamente.
-  // (Ver abajo la adaptación)
+  if (token) {
+    localStorage.setItem("authToken", token);
+  } else {
+    localStorage.removeItem("authToken");
+  }
+}
+
+export function getAuthToken() {
+  try {
+    return localStorage.getItem("authToken") || null;
+  } catch {
+    return null;
+  }
 }

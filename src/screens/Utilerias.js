@@ -1,40 +1,126 @@
 import { useState } from "react";
-import { View, Text, Image, TouchableOpacity, ScrollView, Alert, Linking } from "react-native";
+import {
+  View, Text, Image, TouchableOpacity, ScrollView,
+  Alert, Linking, Modal, Pressable,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
 import C from "../constants/colors";
 import { Row, Card } from "../components";
 
+// ── Herramientas con detalle para modal ───────────────────────────────────────
 const INFO_POR_ROL = {
   "Jefe de Vinculación": {
     color: C.teal,
-    contactos: [
-      { nombre: "Coordinación de Residencias", correo: "residencias@tec.edu.mx", ext: "Ext. 1001" },
-      { nombre: "Recursos Humanos",            correo: "rh@tec.edu.mx",          ext: "Ext. 1020" },
-      { nombre: "Soporte TI",                  correo: "soporte@tec.edu.mx",     ext: "Ext. 1050" },
-    ],
     herramientas: [
-      { icon: "calendar",    label: "Calendario académico 2025-B", url: "https://tec.edu.mx/calendario" },
-      { icon: "file-text",   label: "Formato ITV-AC-PO-004-A01",   url: "https://tec.edu.mx/formatos"   },
-      { icon: "book",        label: "Reglamento de residencias",   url: "https://tec.edu.mx/reglamento"  },
-      { icon: "link",        label: "Portal de empresas vinculadas", url: "https://tec.edu.mx/empresas"  },
+      {
+        icon: "calendar", label: "Calendario académico 2025-B",
+        url: "https://tec.edu.mx/calendario",
+        detalle: {
+          descripcion: "Calendario oficial del período escolar 2025-B con todas las fechas clave: inicio de residencias, entrega de reportes y evaluaciones finales.",
+          tipo: "PDF", paginas: "4 págs.", fecha: "Ago 2025",
+          pasos: [
+            "Descarga el PDF desde el portal institucional.",
+            "Revisa las fechas límite de entrega de reportes.",
+            "Comparte las fechas con tus residentes al inicio del período.",
+            "Programa recordatorios con al menos 5 días hábiles de anticipación.",
+          ],
+        },
+      },
+      {
+        icon: "file-text", label: "Formato ITV-AC-PO-004-A01",
+        url: "https://tec.edu.mx/formatos",
+        detalle: {
+          descripcion: "Formato oficial de asignación de residentes a empresas y asesores. Debe llenarse al inicio de cada período para cada residente.",
+          tipo: "Word / PDF", paginas: "2 págs.", fecha: "Ene 2026",
+          pasos: [
+            "Descarga la plantilla en formato Word.",
+            "Completa los datos del residente, empresa y asesor.",
+            "Obtén las firmas requeridas (residente, asesor, empresa).",
+            "Digitaliza y sube al sistema antes del plazo establecido.",
+          ],
+        },
+      },
+      {
+        icon: "book", label: "Reglamento de residencias",
+        url: "https://tec.edu.mx/reglamento",
+        detalle: {
+          descripcion: "Reglamento institucional que rige los derechos, obligaciones y procedimientos de la residencia profesional en el ITVER.",
+          tipo: "PDF", paginas: "32 págs.", fecha: "2024",
+          pasos: [
+            "Lee el reglamento completo al inicio del período.",
+            "Comunica a los residentes los artículos más relevantes.",
+            "Consulta en caso de incidencias o conflictos.",
+            "Actualización vigente: versión 2024.",
+          ],
+        },
+      },
+      {
+        icon: "link", label: "Portal de empresas vinculadas",
+        url: "https://tec.edu.mx/empresas",
+        detalle: {
+          descripcion: "Portal institucional con el directorio completo de empresas vinculadas, sus convenios vigentes y los proyectos disponibles para residentes.",
+          tipo: "Web", paginas: "—", fecha: "Actualización continua",
+          pasos: [
+            "Accede con tus credenciales institucionales.",
+            "Consulta el estado de convenios por empresa.",
+            "Registra nuevas empresas vinculadas.",
+            "Notifica a Control Escolar cambios de convenio.",
+          ],
+        },
+      },
     ],
     notas: [
-      "Las asignaciones deben completarse antes del inicio del periodo.",
+      "Las asignaciones deben completarse antes del inicio del período.",
       "Los proyectos sin residente asignado deben resolverse en 5 días hábiles.",
       "El cambio de asesor debe justificarse por escrito.",
     ],
   },
+
   "Asesor": {
     color: C.blue,
-    contactos: [
-      { nombre: "Jefe de Vinculación",    correo: "vinculacion@tec.edu.mx", ext: "Ext. 1010" },
-      { nombre: "Coordinación Académica", correo: "academica@tec.edu.mx",   ext: "Ext. 1002" },
-      { nombre: "Soporte TI",             correo: "soporte@tec.edu.mx",     ext: "Ext. 1050" },
-    ],
     herramientas: [
-      { icon: "file-text", label: "Criterios de evaluación de reportes", url: "https://tec.edu.mx/criterios" },
-      { icon: "book",      label: "Guía del asesor",                     url: "https://tec.edu.mx/guia"     },
-      { icon: "calendar",  label: "Fechas límite 2025-B",                url: "https://tec.edu.mx/fechas"   },
+      {
+        icon: "file-text", label: "Criterios de evaluación de reportes",
+        url: "https://tec.edu.mx/criterios",
+        detalle: {
+          descripcion: "Documento oficial con los criterios, rúbricas y ponderaciones para la evaluación de cada tipo de reporte (preliminar, parciales y final).",
+          tipo: "PDF", paginas: "8 págs.", fecha: "Ago 2025",
+          pasos: [
+            "Descarga y revisa los criterios antes de evaluar.",
+            "Aplica la rúbrica correspondiente a cada tipo de reporte.",
+            "Registra retroalimentación escrita para reportes 'Por corregir'.",
+            "Sube la calificación al sistema en máximo 5 días hábiles.",
+          ],
+        },
+      },
+      {
+        icon: "book", label: "Guía del asesor",
+        url: "https://tec.edu.mx/guia",
+        detalle: {
+          descripcion: "Manual completo para asesores de residencia profesional: procedimientos, responsabilidades, tiempos de respuesta y protocolos de comunicación.",
+          tipo: "PDF", paginas: "20 págs.", fecha: "Ene 2026",
+          pasos: [
+            "Lee el manual completo al inicio de cada período.",
+            "Verifica tus responsabilidades en el apartado 3.",
+            "Consulta el protocolo de incidencias en la sección 7.",
+            "Ante dudas, contacta al Jefe de Vinculación.",
+          ],
+        },
+      },
+      {
+        icon: "calendar", label: "Fechas límite 2025-B",
+        url: "https://tec.edu.mx/fechas",
+        detalle: {
+          descripcion: "Cronograma detallado con todas las fechas límite del período: entrega de reportes, evaluaciones, visitas a empresas y cierre de período.",
+          tipo: "PDF", paginas: "2 págs.", fecha: "Ago 2025",
+          pasos: [
+            "Descarga el cronograma al inicio del período.",
+            "Programa visitas a empresas con 2 semanas de anticipación.",
+            "Envía recordatorios a tus residentes una semana antes de cada fecha.",
+            "Reporta incumplimientos al Jefe de Vinculación en 24 h.",
+          ],
+        },
+      },
     ],
     notas: [
       "Revisar reportes en un máximo de 5 días hábiles tras su recepción.",
@@ -42,18 +128,66 @@ const INFO_POR_ROL = {
       "Los reportes 'Por corregir' deben retroalimentarse de forma detallada.",
     ],
   },
+
   "Residente": {
     color: C.purple,
-    contactos: [
-      { nombre: "Mi Asesor",           correo: "asesor@tec.edu.mx",      ext: "Consultar perfil" },
-      { nombre: "Vinculación",         correo: "vinculacion@tec.edu.mx", ext: "Ext. 1010"        },
-      { nombre: "Control Escolar",     correo: "escolar@tec.edu.mx",     ext: "Ext. 1030"        },
-    ],
     herramientas: [
-      { icon: "edit",      label: "Plantilla Reporte Preliminar",  url: "https://tec.edu.mx/plantillas"  },
-      { icon: "layers",    label: "Plantilla Reportes Parciales",  url: "https://tec.edu.mx/plantillas"  },
-      { icon: "book-open", label: "Plantilla Reporte Final",       url: "https://tec.edu.mx/plantillas"  },
-      { icon: "book",      label: "Reglamento de residencias",     url: "https://tec.edu.mx/reglamento"  },
+      {
+        icon: "edit", label: "Plantilla Reporte Preliminar",
+        url: "https://tec.edu.mx/plantillas",
+        detalle: {
+          descripcion: "Formato oficial para el reporte de inicio de residencia. Incluye objetivos, diagnóstico, cronograma y descripción de la empresa receptora.",
+          tipo: "Word / PDF", paginas: "10–15 págs.", fecha: "Ago 2025",
+          pasos: [
+            "Descarga la plantilla en Word desde el portal.",
+            "Completa todos los campos marcados en amarillo.",
+            "Envía un borrador a tu asesor para revisión previa.",
+            "Entrega la versión final firmada en PDF antes de la fecha límite.",
+          ],
+        },
+      },
+      {
+        icon: "layers", label: "Plantilla Reportes Parciales",
+        url: "https://tec.edu.mx/plantillas",
+        detalle: {
+          descripcion: "Plantilla para los tres reportes de avance. Cada uno debe documentar actividades del período, logros, dificultades y horas trabajadas.",
+          tipo: "Word / PDF", paginas: "15–20 págs.", fecha: "Ago 2025",
+          pasos: [
+            "Descarga la plantilla correspondiente (Parcial 1, 2 o 3).",
+            "Registra tus actividades semana a semana durante el período.",
+            "Incluye evidencias fotográficas o capturas del sistema.",
+            "Sube el PDF firmado al portal antes de la fecha límite.",
+          ],
+        },
+      },
+      {
+        icon: "book-open", label: "Plantilla Reporte Final",
+        url: "https://tec.edu.mx/plantillas",
+        detalle: {
+          descripcion: "Plantilla del reporte de conclusión de residencia. Debe incluir resultados, conclusiones, recomendaciones y la evaluación de la empresa.",
+          tipo: "Word / PDF", paginas: "30–50 págs.", fecha: "Ago 2025",
+          pasos: [
+            "Descarga la plantilla del reporte final.",
+            "Asegúrate de incluir todos los apartados requeridos (ver índice).",
+            "Obtén la firma y sello de tu empresa receptora.",
+            "Entrega en PDF y en físico encuadernado según instrucciones.",
+          ],
+        },
+      },
+      {
+        icon: "book", label: "Reglamento de residencias",
+        url: "https://tec.edu.mx/reglamento",
+        detalle: {
+          descripcion: "Reglamento institucional vigente. Conoce tus derechos, obligaciones y los procedimientos que rigen tu residencia profesional.",
+          tipo: "PDF", paginas: "32 págs.", fecha: "2024",
+          pasos: [
+            "Lee el reglamento completo antes de comenzar.",
+            "Presta especial atención a los artículos 8, 12 y 15.",
+            "Conserva una copia digital para consulta.",
+            "Ante dudas, consulta a tu asesor o a Control Escolar.",
+          ],
+        },
+      },
     ],
     notas: [
       "Entrega puntual: los reportes tienen fecha límite inamovible.",
@@ -63,11 +197,137 @@ const INFO_POR_ROL = {
   },
 };
 
+// ── Contactos base por rol ────────────────────────────────────────────────────
+const CONTACTOS_BASE = {
+  "Jefe de Vinculación": [
+    { nombre: "Coordinación de Residencias", correo: "residencias@itm.edu.mx", ext: "Ext. 1001" },
+    { nombre: "Recursos Humanos",            correo: "rh@itm.edu.mx",          ext: "Ext. 1020" },
+    { nombre: "Soporte TI",                  correo: "soporte@itm.edu.mx",     ext: "Ext. 1050" },
+  ],
+  "Asesor": [
+    { nombre: "Jefe de Vinculación",    correo: "director@itm.edu.mx",    ext: "Ext. 1010" },
+    { nombre: "Coordinación Académica", correo: "academica@itm.edu.mx",   ext: "Ext. 1002" },
+    { nombre: "Soporte TI",             correo: "soporte@itm.edu.mx",     ext: "Ext. 1050" },
+  ],
+  "Residente": [
+    { nombre: "Mi Asesor",       correo: "asesor@itm.edu.mx",    ext: "Consultar perfil" },
+    { nombre: "Vinculación",     correo: "director@itm.edu.mx",  ext: "Ext. 1010"        },
+    { nombre: "Control Escolar", correo: "escolar@itm.edu.mx",   ext: "Ext. 1030"        },
+  ],
+};
+
+// ── Componente Modal de recurso ───────────────────────────────────────────────
+function RecursoModal({ visible, item, color, onClose }) {
+  if (!item) return null;
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable
+        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", alignItems: "center", padding: 24 }}
+        onPress={onClose}
+      >
+        <Pressable
+          style={{ width: "100%", maxWidth: 500, backgroundColor: "#fff", borderRadius: 18, overflow: "hidden" }}
+          onPress={() => {}}
+        >
+          {/* Header */}
+          <View style={{ backgroundColor: color, padding: 20, flexDirection: "row", alignItems: "center", gap: 14 }}>
+            <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.25)", alignItems: "center", justifyContent: "center" }}>
+              <Feather name={item.icon} size={22} color="#fff" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 16, fontWeight: "800", color: "#fff", lineHeight: 21 }}>{item.label}</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
+              <Feather name="x" size={20} color="rgba(255,255,255,0.8)" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={{ maxHeight: 440 }} contentContainerStyle={{ padding: 20 }}>
+            {/* Descripción */}
+            <Text style={{ fontSize: 14, color: C.textMuted, lineHeight: 21, marginBottom: 18 }}>
+              {item.detalle.descripcion}
+            </Text>
+
+            {/* Metadata */}
+            <Row style={{ gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+              {[
+                { icon: "file",    val: item.detalle.tipo   },
+                { icon: "book",    val: item.detalle.paginas },
+                { icon: "clock",   val: item.detalle.fecha   },
+              ].map((m, i) => (
+                <Row key={i} style={{ gap: 5, backgroundColor: color + "18", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, alignItems: "center" }}>
+                  <Feather name={m.icon} size={12} color={color} />
+                  <Text style={{ fontSize: 12, color: color, fontWeight: "600" }}>{m.val}</Text>
+                </Row>
+              ))}
+            </Row>
+
+            {/* Pasos */}
+            <Text style={{ fontSize: 13, fontWeight: "700", color: C.text, marginBottom: 12 }}>¿Cómo usarlo?</Text>
+            <View style={{ gap: 10, marginBottom: 20 }}>
+              {item.detalle.pasos.map((paso, i) => (
+                <Row key={i} style={{ gap: 12, alignItems: "flex-start" }}>
+                  <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: color, alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                    <Text style={{ fontSize: 11, fontWeight: "800", color: "#fff" }}>{i + 1}</Text>
+                  </View>
+                  <Text style={{ flex: 1, fontSize: 13, color: C.textMuted, lineHeight: 20 }}>{paso}</Text>
+                </Row>
+              ))}
+            </View>
+
+            {/* Botón abrir */}
+            <TouchableOpacity
+              onPress={() => {
+                onClose();
+                Linking.openURL(item.url).catch(() =>
+                  Alert.alert("Error", "No se pudo abrir el enlace.")
+                );
+              }}
+              style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: color, borderRadius: 12, paddingVertical: 14 }}
+            >
+              <Feather name="external-link" size={16} color="#fff" />
+              <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>Abrir documento</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+// ── Pantalla principal ────────────────────────────────────────────────────────
 export default function Utilerias({ fotoPerfil, setFotoPerfil, usuario, role }) {
-  const info = INFO_POR_ROL[role] || INFO_POR_ROL["Residente"];
+  const info     = INFO_POR_ROL[role] || INFO_POR_ROL["Residente"];
   const initials = usuario?.nombre
     ? usuario.nombre.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "??";
+
+  // Modal de recurso
+  const [modalItem, setModalItem] = useState(null);
+
+  // Contactos: para Residente usa datos reales del backend si están disponibles
+  const contactos = (() => {
+    if (role === "Residente") {
+      return [
+        {
+          nombre: usuario?.asesorInfo
+            ? `Mi Asesor — ${usuario.asesorInfo.nombre}`
+            : "Mi Asesor",
+          correo: usuario?.asesorInfo?.correo || "asesor@itm.edu.mx",
+          ext: "Asesor Asignado",
+        },
+        {
+          nombre: usuario?.jefeInfo
+            ? `Jefe de Vinculación — ${usuario.jefeInfo.nombre}`
+            : "Jefe de Vinculación",
+          correo: usuario?.jefeInfo?.correo || "director@itm.edu.mx",
+          ext: "Ext. 1010",
+        },
+        { nombre: "Control Escolar", correo: "escolar@itm.edu.mx", ext: "Ext. 1030" },
+      ];
+    }
+    return CONTACTOS_BASE[role] || CONTACTOS_BASE["Residente"];
+  })();
 
   const seleccionarFoto = () => {
     if (!globalThis?.document?.createElement) {
@@ -85,9 +345,7 @@ export default function Utilerias({ fotoPerfil, setFotoPerfil, usuario, role }) 
         return;
       }
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        setFotoPerfil(ev.target.result);
-      };
+      reader.onload = (ev) => setFotoPerfil(ev.target.result);
       reader.readAsDataURL(file);
     };
     input.click();
@@ -97,13 +355,6 @@ export default function Utilerias({ fotoPerfil, setFotoPerfil, usuario, role }) 
     Alert.alert("Eliminar foto", "¿Seguro que quieres eliminar tu foto de perfil?", [
       { text: "Cancelar", style: "cancel" },
       { text: "Eliminar", style: "destructive", onPress: () => setFotoPerfil(null) },
-    ]);
-  };
-
-  const abrirEnlace = (url) => {
-    Alert.alert("Abrir enlace", `Se abrirá: ${url}`, [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Abrir", onPress: () => Linking.openURL(url).catch(() => Alert.alert("Error", "No se pudo abrir el enlace.")) },
     ]);
   };
 
@@ -118,7 +369,6 @@ export default function Utilerias({ fotoPerfil, setFotoPerfil, usuario, role }) 
       <Card style={{ marginBottom: 20 }}>
         <Text style={{ fontSize: 15, fontWeight: "700", color: C.text, marginBottom: 18 }}>Foto de Perfil</Text>
         <Row style={{ alignItems: "center", gap: 24 }}>
-          {/* Avatar grande */}
           <View style={{ position: "relative" }}>
             {fotoPerfil ? (
               <Image
@@ -162,12 +412,14 @@ export default function Utilerias({ fotoPerfil, setFotoPerfil, usuario, role }) 
                 </TouchableOpacity>
               )}
             </Row>
-            <Text style={{ fontSize: 11, color: C.textLight, marginTop: 8 }}>JPG, PNG o WEBP · máx. 5 MB</Text>
+            <Text style={{ fontSize: 11, color: C.textLight, marginTop: 8 }}>
+              JPG, PNG o WEBP · máx. 5 MB · {fotoPerfil ? "✓ Guardada en este dispositivo" : "Sin foto guardada"}
+            </Text>
           </View>
         </Row>
       </Card>
 
-      {/* ── Herramientas y Recursos ── */}
+      {/* ── Recursos y Documentos ── */}
       <Card style={{ marginBottom: 20 }}>
         <Row style={{ alignItems: "center", gap: 10, marginBottom: 16 }}>
           <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: info.color + "22", alignItems: "center", justifyContent: "center" }}>
@@ -179,14 +431,17 @@ export default function Utilerias({ fotoPerfil, setFotoPerfil, usuario, role }) 
           {info.herramientas.map((h, i) => (
             <TouchableOpacity
               key={i}
-              onPress={() => abrirEnlace(h.url)}
+              onPress={() => setModalItem(h)}
               style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, backgroundColor: C.bg, borderRadius: 10, borderWidth: 1, borderColor: C.border }}
             >
               <View style={{ width: 36, height: 36, borderRadius: 9, backgroundColor: info.color + "22", alignItems: "center", justifyContent: "center" }}>
                 <Feather name={h.icon} size={16} color={info.color} />
               </View>
-              <Text style={{ flex: 1, fontSize: 13, fontWeight: "600", color: C.text }}>{h.label}</Text>
-              <Feather name="external-link" size={14} color={C.textLight} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>{h.label}</Text>
+                <Text style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{h.detalle.tipo} · {h.detalle.paginas}</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color={C.textLight} />
             </TouchableOpacity>
           ))}
         </View>
@@ -201,7 +456,7 @@ export default function Utilerias({ fotoPerfil, setFotoPerfil, usuario, role }) 
           <Text style={{ fontSize: 15, fontWeight: "700", color: C.text }}>Contactos Importantes</Text>
         </Row>
         <View style={{ gap: 12 }}>
-          {info.contactos.map((c, i) => (
+          {contactos.map((c, i) => (
             <Row key={i} style={{ alignItems: "center", gap: 12, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.bg, borderRadius: 10 }}>
               <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: C.blueLight, alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ fontSize: 13, fontWeight: "800", color: C.blue }}>{c.nombre[0]}</Text>
@@ -210,7 +465,18 @@ export default function Utilerias({ fotoPerfil, setFotoPerfil, usuario, role }) 
                 <Text style={{ fontSize: 13, fontWeight: "700", color: C.text }}>{c.nombre}</Text>
                 <Text style={{ fontSize: 11, color: C.textMuted }}>{c.correo} · {c.ext}</Text>
               </View>
-              <TouchableOpacity onPress={() => Alert.alert("Correo", `Contactar a: ${c.correo}`)}>
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert(
+                    "Contactar",
+                    `¿Abrir correo a:\n${c.correo}?`,
+                    [
+                      { text: "Cancelar", style: "cancel" },
+                      { text: "Abrir correo", onPress: () => Linking.openURL(`mailto:${c.correo}`) },
+                    ],
+                  )
+                }
+              >
                 <Feather name="mail" size={16} color={C.blue} />
               </TouchableOpacity>
             </Row>
@@ -247,10 +513,10 @@ export default function Utilerias({ fotoPerfil, setFotoPerfil, usuario, role }) 
           <Text style={{ fontSize: 15, fontWeight: "700", color: C.text }}>Información del Sistema</Text>
         </Row>
         {[
-          ["Sistema",       "VinculaTec"],
-          ["Versión",       "v2.5 — 2025-B"],
-          ["Desarrollado",  "ITVER — Depto. de Sistemas"],
-          ["Soporte",       "soporte@tec.edu.mx"],
+          ["Sistema",      "VinculaTec"],
+          ["Versión",      "v2.5 — 2025-B"],
+          ["Desarrollado", "ITVER — Depto. de Sistemas"],
+          ["Soporte",      "soporte@itm.edu.mx"],
         ].map(([k, v], i) => (
           <Row key={i} style={{ paddingVertical: 8, borderBottomWidth: i < 3 ? 1 : 0, borderBottomColor: C.borderLight }}>
             <Text style={{ flex: 1, fontSize: 13, color: C.textMuted, fontWeight: "600" }}>{k}</Text>
@@ -258,6 +524,14 @@ export default function Utilerias({ fotoPerfil, setFotoPerfil, usuario, role }) 
           </Row>
         ))}
       </Card>
+
+      {/* ── Modal recurso ── */}
+      <RecursoModal
+        visible={!!modalItem}
+        item={modalItem}
+        color={info.color}
+        onClose={() => setModalItem(null)}
+      />
     </ScrollView>
   );
 }

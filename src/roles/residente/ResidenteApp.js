@@ -33,8 +33,21 @@ const NAV = [
 ];
 
 export default function ResidenteApp({ usuario, onLogout }) {
-  const [activeNav,  setActiveNav]  = useState("dashboard");
-  const [fotoPerfil, setFotoPerfil] = useState(null);
+  const [activeNav, setActiveNav] = useState("dashboard");
+
+  // ── Foto de perfil persistente en localStorage ────────────────────────────
+  const storageKey = `vt_foto_${usuario?.id || "residente"}`;
+  const [fotoPerfil, setFotoPerfilState] = useState(() => {
+    try { return localStorage.getItem(storageKey) || null; } catch { return null; }
+  });
+
+  const setFotoPerfil = (foto) => {
+    setFotoPerfilState(foto);
+    try {
+      if (foto) localStorage.setItem(storageKey, foto);
+      else       localStorage.removeItem(storageKey);
+    } catch { /* sin localStorage */ }
+  };
 
   const views = {
     dashboard:            <DashResidente onNavigate={setActiveNav} />,
@@ -48,7 +61,7 @@ export default function ResidenteApp({ usuario, onLogout }) {
   };
 
   return (
-    <View style={{ flex:1, flexDirection:"row", height: Platform.OS === "web" ? "100vh" : "100%", backgroundColor:C.bg }}>
+    <View style={{ flex: 1, flexDirection: "row", height: Platform.OS === "web" ? "100vh" : "100%", backgroundColor: C.bg }}>
       <Sidebar
         activeNav={activeNav}
         setActiveNav={setActiveNav}
@@ -58,7 +71,7 @@ export default function ResidenteApp({ usuario, onLogout }) {
         usuario={usuario}
         fotoPerfil={fotoPerfil}
       />
-      <View style={{ flex:1, flexDirection:"column" }}>
+      <View style={{ flex: 1, flexDirection: "column" }}>
         <TopBar
           activeNav={activeNav}
           setActiveNav={setActiveNav}
@@ -68,7 +81,7 @@ export default function ResidenteApp({ usuario, onLogout }) {
           usuario={usuario}
           fotoPerfil={fotoPerfil}
         />
-        <ScrollView style={{ flex:1 }} contentContainerStyle={{ padding:24 }}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 24 }}>
           {views[activeNav] || views.dashboard}
         </ScrollView>
       </View>

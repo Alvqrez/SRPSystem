@@ -4,12 +4,12 @@ import C from "../../constants/colors";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
 
-import DashAsesor       from "./DashAsesor";
-import ProyectosAsesor  from "./ProyectosAsesor";
+import DashAsesor        from "./DashAsesor";
+import ProyectosAsesor   from "./ProyectosAsesor";
 import SeguimientoAsesor from "../../screens/SeguimientoAsesor";
-import Utilerias        from "../../screens/Utilerias";
-import Notificaciones   from "../../screens/Notificaciones";
-import CalendarioCitas  from "../../screens/CalendarioCitas";
+import Utilerias         from "../../screens/Utilerias";
+import Notificaciones    from "../../screens/Notificaciones";
+import CalendarioCitas   from "../../screens/CalendarioCitas";
 
 const NAV = [
   { id: "dashboard",      label: "Dashboard",      icon: "grid"      },
@@ -21,8 +21,21 @@ const NAV = [
 ];
 
 export default function AsesorApp({ usuario, onLogout }) {
-  const [activeNav,  setActiveNav]  = useState("dashboard");
-  const [fotoPerfil, setFotoPerfil] = useState(null);
+  const [activeNav, setActiveNav] = useState("dashboard");
+
+  // ── Foto de perfil persistente en localStorage ────────────────────────────
+  const storageKey = `vt_foto_${usuario?.id || "asesor"}`;
+  const [fotoPerfil, setFotoPerfilState] = useState(() => {
+    try { return localStorage.getItem(storageKey) || null; } catch { return null; }
+  });
+
+  const setFotoPerfil = (foto) => {
+    setFotoPerfilState(foto);
+    try {
+      if (foto) localStorage.setItem(storageKey, foto);
+      else       localStorage.removeItem(storageKey);
+    } catch { /* sin localStorage */ }
+  };
 
   const views = {
     dashboard:      <DashAsesor onNavigate={setActiveNav} />,

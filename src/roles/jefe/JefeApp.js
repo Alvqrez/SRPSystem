@@ -4,37 +4,54 @@ import C from "../../constants/colors";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
 
-import DashJefe         from "./DashJefe";
-import GestionEmpresas  from "../../screens/GestionEmpresas";
-import GestionProyectos from "../../screens/GestionProyectos";
-import SeguimientoJefe  from "../../screens/SeguimientoJefe";
-import AsignacionJefe   from "../../screens/AsignacionJefe";
-import Utilerias        from "../../screens/Utilerias";
-import Notificaciones   from "../../screens/Notificaciones";
-import CalendarioCitas  from "../../screens/CalendarioCitas";
+import DashJefe           from "./DashJefe";
+import GestionEmpresas    from "../../screens/GestionEmpresas";
+import GestionProyectos   from "../../screens/GestionProyectos";
+import SeguimientoJefe    from "../../screens/SeguimientoJefe";
+import AsignacionJefe     from "../../screens/AsignacionJefe";
+import PropuestasAsesores from "./PropuestasAsesores";
+import ValidacionFuentes  from "./ValidacionFuentes";
+import Utilerias          from "../../screens/Utilerias";
+import Notificaciones     from "../../screens/Notificaciones";
+import CalendarioCitas    from "../../screens/CalendarioCitas";
 
 const NAV = [
-  { id: "dashboard",        label: "Dashboard",    icon: "grid"        },
-  { id: "empresas",         label: "Empresas",     icon: "briefcase"   },
-  { id: "proyectos",        label: "Proyectos",    icon: "folder"      },
-  { id: "asignacion",       label: "Asignación",   icon: "user-plus"   },
-  { id: "seguimiento",      label: "Seguimiento",  icon: "file-text"   },
-  { id: "notificaciones",   label: "Notificaciones", icon: "bell"      },
-  { id: "calendario",       label: "Calendario",   icon: "calendar"    },
-  { id: "utilerias",        label: "Utilerías",    icon: "tool"        },
+  { id: "dashboard",    label: "Dashboard",    icon: "grid"        },
+  { id: "empresas",     label: "Empresas",     icon: "briefcase"   },
+  { id: "proyectos",    label: "Proyectos",    icon: "folder"      },
+  { id: "asignacion",   label: "Asignación",   icon: "user-plus"   },
+  { id: "propuestas",   label: "Propuestas",   icon: "layers"      },
+  { id: "fuentes",      label: "Validar Fuentes", icon: "check-circle" },
+  { id: "seguimiento",  label: "Seguimiento",  icon: "file-text"   },
+  { id: "notificaciones", label: "Notificaciones", icon: "bell"    },
+  { id: "calendario",   label: "Calendario",   icon: "calendar"    },
+  { id: "utilerias",    label: "Utilerías",    icon: "tool"        },
 ];
 
-const DEPARTAMENTO = "Departamento de Sistemas";
-
 function JefeAppInner({ usuario, onLogout }) {
-  const [activeNav,  setActiveNav]  = useState("dashboard");
-  const [fotoPerfil, setFotoPerfil] = useState(null);
+  const [activeNav, setActiveNav] = useState("dashboard");
+
+  // ── Foto de perfil persistente en localStorage ────────────────────────────
+  const storageKey = `vt_foto_${usuario?.id || "jefe"}`;
+  const [fotoPerfil, setFotoPerfilState] = useState(() => {
+    try { return localStorage.getItem(storageKey) || null; } catch { return null; }
+  });
+
+  const setFotoPerfil = (foto) => {
+    setFotoPerfilState(foto);
+    try {
+      if (foto) localStorage.setItem(storageKey, foto);
+      else       localStorage.removeItem(storageKey);
+    } catch { /* sin localStorage */ }
+  };
 
   const views = {
     dashboard:      <DashJefe onNavigate={setActiveNav} />,
     empresas:       <GestionEmpresas />,
     proyectos:      <GestionProyectos />,
     asignacion:     <AsignacionJefe />,
+    propuestas:     <PropuestasAsesores onNavigate={setActiveNav} />,
+    fuentes:        <ValidacionFuentes onNavigate={setActiveNav} />,
     seguimiento:    <SeguimientoJefe />,
     notificaciones: <Notificaciones onNavigate={setActiveNav} />,
     calendario:     <CalendarioCitas />,
@@ -50,7 +67,6 @@ function JefeAppInner({ usuario, onLogout }) {
         navItems={NAV}
         onLogout={onLogout}
         usuario={usuario}
-        departamento={DEPARTAMENTO}
         fotoPerfil={fotoPerfil}
       />
       <View style={{ flex: 1, flexDirection: "column" }}>
