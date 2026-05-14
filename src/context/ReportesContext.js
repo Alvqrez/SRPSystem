@@ -81,8 +81,27 @@ export const INITIAL_REPORTS = [
 export function ReportesProvider({ children }) {
   const [reports, setReports] = useState(INITIAL_REPORTS);
 
+  /** Actualiza campos de un reporte (usado por el Residente al enviar) */
   const updateReport = (id, changes) =>
     setReports((prev) => prev.map((r) => (r.id === id ? { ...r, ...changes } : r)));
+
+  /**
+   * Registra la revisión del Asesor en el contexto del Residente.
+   * Esto es lo que permite que el Residente vea la retroalimentación
+   * después de que el Asesor revisa en SeguimientoAsesor.
+   */
+  const reviewReport = (id, { status, feedback, reviewer = "Asesor" }) => {
+    const today = new Date().toLocaleDateString("es-MX", {
+      day: "2-digit", month: "short", year: "numeric",
+    });
+    setReports((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? { ...r, status, feedback, reviewer, fechaRevision: today }
+          : r
+      )
+    );
+  };
 
   const preliminarAprobado =
     reports.find((r) => r.id === "preliminar")?.status === "Aceptado";
@@ -96,6 +115,7 @@ export function ReportesProvider({ children }) {
       value={{
         reports,
         updateReport,
+        reviewReport,
         preliminarAprobado,
         todosParcialesAprobados,
         finalDesbloqueado,
