@@ -20,7 +20,7 @@ const NAV = [
   { id: "empresas",     label: "Empresas",     icon: "briefcase"   },
   { id: "proyectos",    label: "Proyectos",    icon: "folder"      },
   { id: "asignacion",   label: "Asignación",   icon: "user-plus"   },
-  { id: "propuestas",   label: "Propuestas",   icon: "layers"      },
+  //{ id: "propuestas",   label: "Propuestas",   icon: "layers"      }, comentado por que no se ocupaba
   { id: "fuentes",      label: "Validar Fuentes", icon: "check-circle" },
   { id: "seguimiento",  label: "Seguimiento",  icon: "file-text"   },
   { id: "notificaciones", label: "Notificaciones", icon: "bell"    },
@@ -50,7 +50,7 @@ function JefeAppInner({ usuario, onLogout }) {
     empresas:       <GestionEmpresas />,
     proyectos:      <GestionProyectos />,
     asignacion:     <AsignacionJefe />,
-    propuestas:     <PropuestasAsesores onNavigate={setActiveNav} />,
+    //propuestas:     <PropuestasAsesores onNavigate={setActiveNav} />, comentado por que no se ocupaba
     fuentes:        <ValidacionFuentes onNavigate={setActiveNav} />,
     seguimiento:    <SeguimientoJefe />,
     notificaciones: <Notificaciones onNavigate={setActiveNav} />,
