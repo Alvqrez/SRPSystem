@@ -38,34 +38,130 @@ export default function ProyectosAsesor() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScrollView contentContainerStyle={{ padding: 24 }}>
+    <View style={{ flex: 1, backgroundColor: C.bg, overflow: "visible", }}>
+      <ScrollView
+  contentContainerStyle={{
+    padding: 24,
+    paddingBottom: 80,
+  }}
+  style={{
+    overflow: "visible",
+  }}
+>
         {/* Header */}
-        <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
+        <Row style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 22, zIndex: 99999, elevation: 99999, }}>
           <View>
             <Text style={{ fontSize: 22, fontWeight: "800", color: C.text }}>Mis Proyectos</Text>
             <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>{proyectos.length} proyectos asignados</Text>
           </View>
           {/* Sort */}
-          <View style={{ position: "relative" }}>
-            <TouchableOpacity onPress={() => setShowSort(!showSort)} style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: C.border, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 9, backgroundColor: C.card }}>
-              <Feather name="bar-chart-2" size={13} color={C.textMuted} />
-              <Text style={{ fontSize: 12, color: C.textMuted, fontWeight: "600" }}>Ordenar</Text>
-            </TouchableOpacity>
-            {showSort && (
-              <View style={{ position: "absolute", top: 42, right: 0, width: 180, backgroundColor: C.card, borderRadius: 10, borderWidth: 1, borderColor: C.border, padding: 10, zIndex: 50 }}>
-                {[{ id: "proyecto", label: "Nombre del proyecto" }, { id: "residente", label: "Nombre del residente" }, { id: "fase", label: "Fase del proyecto" }].map((opt) => (
-                  <TouchableOpacity key={opt.id} onPress={() => { setSortBy(opt.id); setShowSort(false); }} style={{ paddingVertical: 7 }}>
-                    <Text style={{ fontSize: 12, color: sortBy === opt.id ? C.teal : C.textSub, fontWeight: sortBy === opt.id ? "800" : "600" }}>{opt.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
+          <View
+  style={{
+    position: "relative",
+    zIndex: 999,
+    elevation: 999,
+  }}
+>
+  {/* Botón */}
+  <TouchableOpacity
+    onPress={() => setShowSort(!showSort)}
+    activeOpacity={0.8}
+    style={{
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      borderWidth: 1,
+      borderColor: C.border,
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+      borderRadius: 9,
+      backgroundColor: C.card,
+    }}
+  >
+    <Feather
+      name="bar-chart-2"
+      size={13}
+      color={C.textMuted}
+    />
+
+    <Text
+      style={{
+        fontSize: 12,
+        color: C.textMuted,
+        fontWeight: "600",
+      }}
+    >
+      Ordenar
+    </Text>
+  </TouchableOpacity>
+
+  {/* Dropdown */}
+  {showSort && (
+    <View style={{ position: "absolute", top: 45, right: 0, width: 220, backgroundColor: C.card, borderRadius: 12,
+        borderWidth: 1, borderColor: C.border, paddingVertical: 8, zIndex: 9999, elevation: 20,shadowColor: "#000",
+        shadowOffset: { width: 0,height: 4, }, shadowOpacity: 0.15,shadowRadius: 6, }}>
+      {[
+        {
+          id: "proyecto",
+          label: "Nombre del proyecto",
+        },
+        {
+          id: "id",
+          label: "Código del proyecto",
+        },
+        {
+          id: "empresa",
+          label: "Empresa asociada",
+        },
+        {
+          id: "residente",
+          label: "Nombre del residente",
+        },
+        {
+          id: "fase",
+          label: "Fase del proyecto",
+        },
+      ].map((opt) => (
+        <TouchableOpacity
+          key={opt.id}
+          activeOpacity={0.7}
+          onPress={() => {
+            setSortBy(opt.id);
+            setShowSort(false);
+          }}
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            backgroundColor:
+              sortBy === opt.id
+                ? C.tealLight
+                : "transparent",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 13,
+              color:
+                sortBy === opt.id
+                  ? C.teal
+                  : C.text,
+              fontWeight:
+                sortBy === opt.id
+                  ? "800"
+                  : "500",
+            }}
+          >
+            {opt.label}
+          </Text>
+        </TouchableOpacity>
+          ))}
+        </View>
+        )}
+        </View>
         </Row>
 
         {/* Project Cards */}
-        <View style={{ gap: 16 }}>
+        <View style={{gap: 16,zIndex: 1,}}>
           {sortedProyectos.map((p) => {
             const isExpanded = expanded === p.id;
             const phaseColor = PHASE_COLORS[p.phase] || C.textMuted;
@@ -73,8 +169,14 @@ export default function ProyectosAsesor() {
             const totalReps  = p.reportes.length;
             const pct        = totalReps > 0 ? Math.round((aceptados / totalReps) * 100) : 0;
 
-            return (
-              <Card key={p.id} style={{ padding: 0, overflow: "hidden" }}>
+            return (<Card
+  key={p.id}
+  style={{
+    padding: 0,
+    overflow: "visible",
+    zIndex: 1,
+  }}
+>        
                 <TouchableOpacity onPress={() => setExpanded(isExpanded ? null : p.id)} activeOpacity={0.9} style={{ padding: 18 }}>
                   <Row style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
                     <View style={{ flex: 1 }}>
