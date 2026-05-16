@@ -1,67 +1,72 @@
-import { useState } from "react";
 import { View, ScrollView, Platform } from "react-native";
 import C from "../../constants/colors";
 import Sidebar from "../../components/Sidebar";
-import TopBar  from "../../components/TopBar";
+import TopBar from "../../components/TopBar";
+import { useState } from "react";
+import { useFotos } from "../../context/FotosContext";
 
-import DashResidente     from "./DashResidente";
-import Seguimiento       from "../../screens/Seguimiento";
+import DashResidente from "./DashResidente";
+import Seguimiento from "../../screens/Seguimiento";
 import ReportePreliminar from "../../screens/ReportePreliminar";
 import ReportesParciales from "../../screens/ReportesParciales";
-import ReporteFinal      from "../../screens/ReporteFinal";
-import Utilerias         from "../../screens/Utilerias";
-import Notificaciones    from "../../screens/Notificaciones";
-import CalendarioCitas   from "../../screens/CalendarioCitas";
+import ReporteFinal from "../../screens/ReporteFinal";
+import Utilerias from "../../screens/Utilerias";
+import Notificaciones from "../../screens/Notificaciones";
+import CalendarioCitas from "../../screens/CalendarioCitas";
 
 const NAV = [
-  { id: "dashboard",    label: "Dashboard",   icon: "grid"      },
-  { id: "seguimiento",  label: "Seguimiento", icon: "file-text" },
+  { id: "dashboard", label: "Dashboard", icon: "grid" },
+  { id: "seguimiento", label: "Seguimiento", icon: "file-text" },
   {
     id: "reportes-grupo",
     label: "Reportes",
     icon: "book",
     group: true,
     children: [
-      { id: "reporte-preliminar",  label: "Reporte Preliminar", icon: "edit"      },
-      { id: "reportes-parciales",  label: "Reportes Parciales", icon: "layers"    },
-      { id: "reporte-final",       label: "Reporte Final",      icon: "book-open" },
+      { id: "reporte-preliminar", label: "Reporte Preliminar", icon: "edit" },
+      { id: "reportes-parciales", label: "Reportes Parciales", icon: "layers" },
+      { id: "reporte-final", label: "Reporte Final", icon: "book-open" },
     ],
   },
-  { id: "notificaciones", label: "Notificaciones", icon: "bell"     },
-  { id: "calendario",     label: "Calendario",     icon: "calendar" },
-  { id: "utilerias",      label: "Utilerías",      icon: "tool"     },
+  { id: "notificaciones", label: "Notificaciones", icon: "bell" },
+  { id: "calendario", label: "Calendario", icon: "calendar" },
+  { id: "utilerias", label: "Utilerías", icon: "tool" },
 ];
 
 export default function ResidenteApp({ usuario, onLogout }) {
   const [activeNav, setActiveNav] = useState("dashboard");
+  const { getFoto, setFoto } = useFotos();
 
-  // ── Foto de perfil persistente en localStorage ────────────────────────────
-  const storageKey = `vt_foto_${usuario?.id || "residente"}`;
-  const [fotoPerfil, setFotoPerfilState] = useState(() => {
-    try { return localStorage.getItem(storageKey) || null; } catch { return null; }
-  });
-
-  const setFotoPerfil = (foto) => {
-    setFotoPerfilState(foto);
-    try {
-      if (foto) localStorage.setItem(storageKey, foto);
-      else       localStorage.removeItem(storageKey);
-    } catch { /* sin localStorage */ }
-  };
+  const fotoPerfil = getFoto(usuario?.id);
+  const setFotoPerfil = (foto) => setFoto(usuario?.id, foto);
 
   const views = {
-    dashboard:            <DashResidente onNavigate={setActiveNav} />,
-    seguimiento:          <Seguimiento />,
+    dashboard: <DashResidente onNavigate={setActiveNav} />,
+    seguimiento: <Seguimiento />,
     "reporte-preliminar": <ReportePreliminar />,
     "reportes-parciales": <ReportesParciales />,
-    "reporte-final":      <ReporteFinal />,
-    notificaciones:       <Notificaciones onNavigate={setActiveNav} />,
-    calendario:           <CalendarioCitas />,
-    utilerias:            <Utilerias fotoPerfil={fotoPerfil} setFotoPerfil={setFotoPerfil} usuario={usuario} role="Residente" />,
+    "reporte-final": <ReporteFinal />,
+    notificaciones: <Notificaciones onNavigate={setActiveNav} />,
+    calendario: <CalendarioCitas />,
+    utilerias: (
+      <Utilerias
+        fotoPerfil={fotoPerfil}
+        setFotoPerfil={setFotoPerfil}
+        usuario={usuario}
+        role="Residente"
+      />
+    ),
   };
 
   return (
-    <View style={{ flex: 1, flexDirection: "row", height: Platform.OS === "web" ? "100vh" : "100%", backgroundColor: C.bg }}>
+    <View
+      style={{
+        flex: 1,
+        flexDirection: "row",
+        height: Platform.OS === "web" ? "100vh" : "100%",
+        backgroundColor: C.bg,
+      }}
+    >
       <Sidebar
         activeNav={activeNav}
         setActiveNav={setActiveNav}
